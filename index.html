@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tren al Desarrollo</title>
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+<header>
+  <h1>🚆 Tren al Desarrollo</h1>
+  <p>Santiago del Estero – La Banda</p>
+</header>
+
+<nav>
+  <button class="activo" onclick="mostrar('estado', this)">Estado</button>
+  <button onclick="mostrar('estaciones', this)">Estaciones</button>
+  <button onclick="mostrar('horarios', this)">Horarios</button>
+  <button onclick="mostrar('avisos', this)">Avisos</button>
+</nav>
+
+<main>
+  <section id="estado" class="seccion activa">
+    <div id="estado-servicio" class="estado cargando">Cargando...</div>
+    <div class="tarjeta">
+      <h3>Próxima salida</h3>
+      <p id="proxima-salida">Calculando...</p>
+    </div>
+    <div class="tarjeta">
+      <h3>Tramo activo</h3>
+      <p id="tramo"></p>
+      <span class="etiqueta">Salidas cada 1 hora</span>
+    </div>
+  </section>
+
+  <section id="estaciones" class="seccion">
+    <div id="lista-estaciones"></div>
+  </section>
+
+  <section id="horarios" class="seccion">
+    <div class="tarjeta">
+      <h3>Lunes a viernes</h3>
+      <p id="h-semana"></p>
+    </div>
+    <div class="tarjeta">
+      <h3>Fines de semana y feriados</h3>
+      <p id="h-finde"></p>
+    </div>
+    <div class="tarjeta">
+      <h3>Salidas de hoy</h3>
+      <p id="lista-salidas"></p>
+    </div>
+  </section>
+
+  <section id="avisos" class="seccion">
+    <div id="lista-avisos"></div>
+  </section>
+</main>
+
+<footer>Verificar horarios oficiales antes de viajar.</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
