@@ -1,5 +1,5 @@
 // Dirección de los datos (ya configurada con tu usuario)
-const URL_DATOS = 'https://lautatoro.github.io/tren-desarrollo/datos.json';
+const URL_DATOS = 'https://lautatoro.github.io/Tren-desarrollo/datos.json';
 
 function mostrar(id, boton) {
   document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
