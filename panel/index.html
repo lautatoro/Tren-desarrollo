@@ -52,6 +52,25 @@
   <section id="vista-panel" class="oculto">
 
     <div class="tarjeta">
+      <h2>Estado del servicio</h2>
+      <p id="estado-actual" style="margin:8px 0;">Cargando...</p>
+      <div id="bloque-detener">
+        <label style="display:block; margin-top:10px;">Motivo
+          <input id="motivo" class="campo" maxlength="200" placeholder="Ej: Corte por obras en Botánico">
+        </label>
+        <div class="fila" style="margin-top:10px;">
+          <button class="btn peligro" onclick="cambiarEstado(true)">Detener servicio</button>
+        </div>
+      </div>
+      <div id="bloque-reanudar" class="oculto">
+        <div class="fila" style="margin-top:10px;">
+          <button class="btn" onclick="cambiarEstado(false)">Reanudar servicio</button>
+        </div>
+      </div>
+      <p id="msg-estado" class="msg" role="status"></p>
+    </div>
+
+    <div class="tarjeta">
       <h2>Publicar aviso</h2>
       <label style="display:block; margin-top:10px;">Tipo
         <select id="tipo" class="campo">
@@ -115,6 +134,7 @@
       await api('/avisos');
       sessionStorage.setItem('clave-panel', clave);
       mostrarVista('vista-panel');
+      cargarEstado();
       cargarAvisos();
     } catch (e) {
       document.getElementById('msg-login').textContent = e.message;
@@ -126,6 +146,38 @@
     clave = '';
     document.getElementById('clave').value = '';
     mostrarVista('vista-login');
+  }
+
+  async function cargarEstado() {
+    try {
+      const e = await api('/estado');
+      const txt = document.getElementById('estado-actual');
+      txt.innerHTML = e.activo
+        ? '<strong>Servicio DETENIDO</strong><br>Motivo: ' + escapar(e.motivo) +
+          '<br><small>Desde: ' + escapar(e.desde) + '</small>'
+        : '<strong>Servicio en funcionamiento</strong>';
+      document.getElementById('bloque-detener').classList.toggle('oculto', e.activo);
+      document.getElementById('bloque-reanudar').classList.toggle('oculto', !e.activo);
+    } catch (err) {
+      document.getElementById('msg-estado').textContent = err.message;
+    }
+  }
+
+  async function cambiarEstado(activo) {
+    const motivo = document.getElementById('motivo').value.trim();
+    const msg = document.getElementById('msg-estado');
+    if (activo && !motivo) { msg.className = 'msg'; msg.textContent = 'Escribí el motivo.'; return; }
+    if (!confirm(activo ? '¿Detener el servicio y avisar a los pasajeros?' : '¿Reanudar el servicio?')) return;
+    try {
+      await api('/estado', { method: 'POST', body: JSON.stringify({ activo, motivo }) });
+      document.getElementById('motivo').value = '';
+      msg.className = 'msg ok';
+      msg.textContent = activo ? 'Servicio detenido' : 'Servicio reanudado';
+      cargarEstado();
+    } catch (err) {
+      msg.className = 'msg';
+      msg.textContent = err.message;
+    }
   }
 
   async function cargarAvisos() {
@@ -168,7 +220,6 @@
     }
   }
 
-  // Si ya había sesión en esta pestaña, entra directo
   if (clave) entrar(); else mostrarVista('vista-login');
 
   if ('serviceWorker' in navigator) {
