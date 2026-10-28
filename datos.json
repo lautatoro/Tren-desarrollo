@@ -1,5 +1,5 @@
 {
-  "ultima_actualizacion": "2026-10-27",
+  "ultima_actualizacion": "2026-10-28",
   "servicio": {
     "lunes_a_viernes": { "desde": "08:00", "hasta": "21:00" },
     "fines_de_semana_y_feriados": { "desde": "15:00", "hasta": "21:00" },
@@ -8,13 +8,10 @@
   },
   "tramo_activo": ["Fórum", "Botánico", "Nodo Tecnológico", "Banda Centro"],
   "trazado": [
-    [-27.779753, -64.261694],
-    [-27.769278, -64.261333],
-    [-27.766639, -64.258056],
-    [-27.762861, -64.256806],
-    [-27.757056, -64.261306],
-    [-27.747556, -64.253083],
-    [-27.731639, -64.239778]
+    [-27.7796560685231, -64.26311693533795],
+    [-27.76762137313474, -64.26966974616168],
+    [-27.757243580824536, -64.26132961673615],
+    [-27.732518745318313, -64.2403828739497]
   ],
   "estaciones": [
     {
@@ -23,9 +20,9 @@
       "nota": "",
       "direccion": "Av. Roca y Perú, Santiago del Estero (revisar)",
       "servicios_cercanos": ["Centro de Convenciones Fórum", "Terminal de Ómnibus"],
-      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.779673196640374,-64.26311419632304",
-      "lat": -27.779673196640374,
-      "lng": -64.26311419632304
+      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.7796560685231,-64.26311693533795",
+      "lat": -27.7796560685231,
+      "lng": -64.26311693533795
     },
     {
       "nombre": "Estación Botánico / Estadio Único Madre de Ciudades",
@@ -33,9 +30,9 @@
       "nota": "",
       "direccion": "Frente al Jardín Botánico, Santiago del Estero (revisar)",
       "servicios_cercanos": ["Estadio Único Madre de Ciudades", "Jardín Botánico"],
-      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.767412530839934,-64.26945726270574",
-      "lat": -27.767412530839934,
-      "lng": -64.26945726270574
+      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.76762137313474,-64.26966974616168",
+      "lat": -27.76762137313474,
+      "lng": -64.26966974616168
     },
     {
       "nombre": "Estación Nodo Tecnológico",
@@ -43,9 +40,9 @@
       "nota": "",
       "direccion": "Nodo Tecnológico / Tecnópolis, La Banda (revisar)",
       "servicios_cercanos": ["Tecnópolis"],
-      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.756962791613756,-64.261406501094",
-      "lat": -27.756962791613756,
-      "lng": -64.261406501094
+      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.757243580824536,-64.26132961673615",
+      "lat": -27.757243580824536,
+      "lng": -64.26132961673615
     },
     {
       "nombre": "Estación Banda Centro",
@@ -53,12 +50,12 @@
       "nota": "",
       "direccion": "Av. Cmdte. Besares, La Banda (revisar)",
       "servicios_cercanos": ["Ferrocarril Mitre"],
-      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.73250160975184,-64.2402431608891",
-      "lat": -27.73250160975184,
-      "lng": -64.2402431608891
+      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.732518745318313,-64.2403828739497",
+      "lat": -27.732518745318313,
+      "lng": -64.2403828739497
     }
   ],
   "avisos": [
-    { "fecha": "2026-10-27", "tipo": "novedad", "texto": "Servicio habilitado hasta Estación Fórum. Información de referencia, verificar con el servicio oficial." }
+    { "fecha": "2026-10-28", "tipo": "novedad", "texto": "Servicio habilitado hasta Estación Fórum. Información de referencia, verificar con el servicio oficial." }
   ]
 }
