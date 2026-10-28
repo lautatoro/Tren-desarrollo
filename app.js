@@ -267,6 +267,28 @@ function renderAvisos(avisos) {
   contenedor.innerHTML = html;
 }
 
+// Banner arriba: servicio detenido o aviso de corte
+function renderBanner(datos) {
+  const banner = document.getElementById('banner-urgente');
+  if (!banner) return;
+
+  if (servicioDetenido(datos)) {
+    banner.className = 'banner-urgente detenido';
+    banner.innerHTML = '<strong>Servicio detenido</strong>' + escapar(datos.servicio_detenido.motivo);
+    return;
+  }
+
+  const corte = (datos.avisos || []).find(a => a.tipo === 'corte');
+  if (corte) {
+    banner.className = 'banner-urgente corte';
+    banner.innerHTML = '<strong>Corte del servicio</strong>' + escapar(corte.texto);
+    return;
+  }
+
+  banner.className = 'banner-urgente oculto';
+  banner.innerHTML = '';
+}
+
 function alternarMapa(id) {
   const caja = document.getElementById('mapa-' + id);
   const abierto = caja.classList.toggle('visible');
@@ -464,6 +486,7 @@ function renderCompleto(datos) {
   renderSalidasHoy(datos, salidas, ahora);
   renderEstaciones(datos.estaciones);
   renderAvisos(datos.avisos || []);
+  renderBanner(datos);
   revisarNovedades(datos);
   revisarSalidas(datos, ahora);
 }
