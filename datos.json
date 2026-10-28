@@ -14,9 +14,9 @@
       "nota": "",
       "direccion": "Av. Roca y Perú, Santiago del Estero (revisar)",
       "servicios_cercanos": ["Centro de Convenciones Fórum", "Terminal de Ómnibus"],
-      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.7788,-64.2628",
-      "lat": -27.7788,
-      "lng": -64.2628
+      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.779673196640374,-64.26311419632304",
+      "lat": -27.779673196640374,
+      "lng": -64.26311419632304
     },
     {
       "nombre": "Estación Botánico / Estadio Único Madre de Ciudades",
@@ -34,9 +34,9 @@
       "nota": "",
       "direccion": "Nodo Tecnológico / Tecnópolis, La Banda (revisar)",
       "servicios_cercanos": ["Tecnópolis"],
-      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.7570,-64.2613",
-      "lat": -27.7570,
-      "lng": -64.2613
+      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.756962791613756,-64.261406501094",
+      "lat": -27.756962791613756,
+      "lng": -64.261406501094
     },
     {
       "nombre": "Estación Banda Centro",
@@ -44,9 +44,9 @@
       "nota": "",
       "direccion": "Av. Cmdte. Besares, La Banda (revisar)",
       "servicios_cercanos": ["Ferrocarril Mitre"],
-      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.7325,-64.2394",
-      "lat": -27.7325,
-      "lng": -64.2394
+      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.73250160975184,-64.2402431608891",
+      "lat": -27.73250160975184,
+      "lng": -64.2402431608891
     }
   ],
   "avisos": [
