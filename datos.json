@@ -120,9 +120,17 @@
   ],
   "avisos": [
     {
+      "id": "mvskjs46n2mjk",
       "fecha": "2026-10-28",
       "tipo": "novedad",
-      "texto": "Servicio habilitado hasta Estación Fórum. Información de referencia, verificar con el servicio oficial."
+      "texto": "Pronto Actualizaciones Nuevas",
+      "autor": "chofer"
+    },
+    {
+      "fecha": "2026-10-28",
+      "tipo": "novedad",
+      "texto": "Servicio habilitado hasta Estación Fórum. Información de referencia, verificar con el servicio oficial.",
+      "id": "viejo-0-2026-10-28"
     }
   ]
 }
