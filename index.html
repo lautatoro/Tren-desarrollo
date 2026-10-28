@@ -4,46 +4,50 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tren al Desarrollo</title>
+<meta name="description" content="Horarios, estaciones, avisos y mapa del Tren al Desarrollo, Santiago del Estero – La Banda.">
 <link rel="stylesheet" href="estilos.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0057B8">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tren Desarrollo">
 <link rel="apple-touch-icon" href="logo.png">
 </head>
 <body>
 
-<div id="pantalla-carga">
-  <img src="logo.png" alt="Tren al Desarrollo" class="carga-logo">
-  <div class="carga-via"><span class="carga-tren"><svg viewBox="0 0 60 34" xmlns="http://www.w3.org/2000/svg" width="46" height="26"><path d="M4 22 Q4 8 18 8 L44 8 Q54 8 56 18 L56 24 Q56 27 53 27 L7 27 Q4 27 4 24 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2"/><path d="M4 17 L56 17" stroke="#D7141A" stroke-width="3"/><rect x="11" y="12" width="8" height="6" rx="1" fill="#0057B8"/><rect x="22" y="12" width="8" height="6" rx="1" fill="#0057B8"/><rect x="33" y="12" width="8" height="6" rx="1" fill="#0057B8"/><rect x="44" y="12" width="7" height="6" rx="1" fill="#0057B8"/><circle cx="15" cy="29" r="4" fill="#003B7A"/><circle cx="45" cy="29" r="4" fill="#003B7A"/></svg></span></div>
+<div id="pantalla-carga" role="status" aria-live="polite">
+  <img src="logo.png" alt="Cargando Tren al Desarrollo" class="carga-logo">
+  <div class="carga-via"><span class="carga-tren"><svg aria-hidden="true" viewBox="0 0 60 34" xmlns="http://www.w3.org/2000/svg" width="46" height="26"><path d="M4 22 Q4 8 18 8 L44 8 Q54 8 56 18 L56 24 Q56 27 53 27 L7 27 Q4 27 4 24 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2"/><path d="M4 17 L56 17" stroke="#D7141A" stroke-width="3"/><rect x="11" y="12" width="8" height="6" rx="1" fill="#0057B8"/><rect x="22" y="12" width="8" height="6" rx="1" fill="#0057B8"/><rect x="33" y="12" width="8" height="6" rx="1" fill="#0057B8"/><rect x="44" y="12" width="7" height="6" rx="1" fill="#0057B8"/><circle cx="15" cy="29" r="4" fill="#003B7A"/><circle cx="45" cy="29" r="4" fill="#003B7A"/></svg></span></div>
   <p>Cargando horarios...</p>
 </div>
 
+<a class="saltar" href="#contenido">Ir al contenido</a>
+
 <header>
-  <h1><img src="logo.png" alt="TAD Tren al Desarrollo" style="height:50px;background:#fff;border-radius:10px;padding:4px;"></h1>
+  <h1><img src="logo.png" alt="TAD, Tren al Desarrollo" style="height:50px;background:#fff;border-radius:10px;padding:4px;"></h1>
   <p>Santiago del Estero – La Banda</p>
 </header>
 
-<nav>
-  <button class="activo" onclick="mostrar('estado', this)">Estado</button>
-  <button onclick="mostrar('mapa', this)">Mapa</button>
-  <button onclick="mostrar('estaciones', this)">Estaciones</button>
-  <button onclick="mostrar('horarios', this)">Horarios</button>
-  <button onclick="mostrar('avisos', this)">Avisos</button>
+<nav aria-label="Secciones">
+  <button class="activo" aria-controls="estado" aria-pressed="true" onclick="mostrar('estado', this)">Estado</button>
+  <button aria-controls="mapa" aria-pressed="false" onclick="mostrar('mapa', this)">Mapa</button>
+  <button aria-controls="estaciones" aria-pressed="false" onclick="mostrar('estaciones', this)">Estaciones</button>
+  <button aria-controls="horarios" aria-pressed="false" onclick="mostrar('horarios', this)">Horarios</button>
+  <button aria-controls="avisos" aria-pressed="false" onclick="mostrar('avisos', this)">Avisos</button>
 </nav>
 
-<main>
+<main id="contenido">
   <section id="estado" class="seccion activa">
-    <div id="estado-servicio" class="estado cargando">Cargando...</div>
+    <div id="estado-servicio" class="estado cargando" role="status" aria-live="polite">Cargando...</div>
     <div class="tarjeta">
-      <button id="btn-notificar" class="mapa" onclick="activarNotificaciones()">Activar notificaciones</button>
-      <p id="estado-notif" style="margin-top:8px;font-size:0.85rem;"></p>
+      <button id="btn-notificar" class="mapa" onclick="activarNotificaciones()" aria-label="Activar notificaciones de salida">Activar notificaciones</button>
+      <p id="estado-notif" aria-live="polite" style="margin-top:8px;font-size:0.85rem;"></p>
     </div>
     <div class="tarjeta">
       <h3>Próxima salida</h3>
       <p id="proxima-salida">Calculando...</p>
-      <p id="cuenta-regresiva" style="font-weight:700;color:var(--rojo);margin-top:4px;"></p>
+      <p id="cuenta-regresiva" aria-live="off" style="font-weight:700;color:var(--rojo);margin-top:4px;"></p>
       <p id="duracion" style="margin-top:6px;"></p>
     </div>
     <div class="tarjeta">
@@ -51,7 +55,16 @@
       <p id="tramo"></p>
       <span class="etiqueta">Salidas cada 1 hora</span>
     </div>
-    <button class="mapa compartir" onclick="compartirWhatsApp()">Compartir por WhatsApp</button>
+    <button class="mapa compartir" onclick="compartirWhatsApp()" aria-label="Compartir la app por WhatsApp">Compartir por WhatsApp</button>
+    <div id="instalar-box" class="tarjeta" hidden>
+      <h3>Instalar la app</h3>
+      <p>Tenela siempre a mano en la pantalla de inicio.</p>
+      <button id="btn-instalar" class="mapa" onclick="instalarApp()">Instalar app</button>
+    </div>
+    <div id="instalar-ios" class="tarjeta" hidden>
+      <h3>Instalar en iPhone</h3>
+      <p>Tocá el botón Compartir de Safari y elegí <strong>Agregar a pantalla de inicio</strong>.</p>
+    </div>
   </section>
 
   <section id="mapa" class="seccion">
@@ -59,7 +72,7 @@
       <h3>Recorrido</h3>
       <p>El tren se muestra en la posición <strong>estimada según el horario</strong>, no en tiempo real.</p>
     </div>
-    <div id="mapa-canvas"></div>
+    <div id="mapa-canvas" role="region" aria-label="Mapa del recorrido"></div>
   </section>
 
   <section id="estaciones" class="seccion">
@@ -92,6 +105,27 @@
 <script src="app.js"></script>
 <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+  // Instalación PWA: guarda el evento y muestra el botón cuando el navegador lo permite
+  let eventoInstalar = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    eventoInstalar = e;
+    document.getElementById('instalar-box').hidden = false;
+  });
+  window.addEventListener('appinstalled', () => {
+    document.getElementById('instalar-box').hidden = true;
+  });
+  function instalarApp() {
+    if (!eventoInstalar) return;
+    eventoInstalar.prompt();
+    eventoInstalar = null;
+    document.getElementById('instalar-box').hidden = true;
+  }
+  // En iPhone no hay botón automático: mostramos instrucciones
+  const esIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const enModoApp = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if (esIOS && !enModoApp) document.getElementById('instalar-ios').hidden = false;
 </script>
 </body>
 </html>
