@@ -64,16 +64,29 @@ function renderAvisos(avisos) {
   }).join('');
 }
 
+// Muestra u oculta el mapa embebido dentro de la tarjeta
+function alternarMapa(id) {
+  const caja = document.getElementById('mapa-' + id);
+  const abierto = caja.classList.toggle('visible');
+  caja.innerHTML = abierto ? '<iframe src="' + caja.dataset.src + '" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>' : '';
+  document.getElementById('btn-' + id).textContent = abierto ? 'Ocultar mapa' : 'Ver mapa';
+}
+
 function renderEstaciones(estaciones) {
   const contenedor = document.getElementById('lista-estaciones');
-  contenedor.innerHTML = estaciones.map(e => {
+  contenedor.innerHTML = estaciones.map((e, i) => {
     const cercanos = (e.servicios_cercanos || []).map(s => '<span class="etiqueta gris">' + s + '</span>').join(' ');
+    const embed = 'https://www.google.com/maps?q=' + encodeURIComponent(e.direccion_mapa || e.nombre) + '&output=embed';
     return '<div class="tarjeta ' + (e.activa ? '' : 'inactiva') + '">' +
       '<h3>' + e.nombre + '</h3>' +
       '<p>' + (e.activa ? 'Tramo activo' : 'Sin servicio') + '</p>' +
       '<p style="margin-top:6px;">📍 ' + e.direccion + '</p>' +
       (cercanos ? '<p style="margin-top:6px;">Cerca: ' + cercanos + '</p>' : '') +
-      '<a class="mapa" href="' + e.mapa + '" target="_blank" rel="noopener">Ver en el mapa</a>' +
+      '<div class="acciones">' +
+        '<button class="mapa" id="btn-' + i + '" onclick="alternarMapa(' + i + ')">Ver mapa</button>' +
+        '<a class="mapa secundario" href="' + e.mapa + '" target="_blank" rel="noopener">Abrir en Maps</a>' +
+      '</div>' +
+      '<div class="caja-mapa" id="mapa-' + i + '" data-src="' + embed + '"></div>' +
       '</div>';
   }).join('');
 }
