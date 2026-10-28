@@ -1,5 +1,5 @@
-const CACHE = 'panel-v1';
-const ARCHIVOS = ['./', './index.html', '../estilos.css', '../logo.png'];
+const CACHE = 'panel-v2';
+const ARCHIVOS = ['./', './index.html', './manifest.json', './logo.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARCHIVOS)));
@@ -15,8 +15,8 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
-  // Las funciones y la identidad siempre van a la red
-  if (url.pathname.includes('/.netlify/') || url.hostname.includes('netlify')) return;
+  // La API del Worker y las funciones siempre van a la red
+  if (url.hostname.includes('workers.dev') || url.hostname.includes('netlify')) return;
   if (e.request.method !== 'GET') return;
 
   e.respondWith(
