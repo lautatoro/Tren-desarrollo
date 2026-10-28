@@ -1,87 +1,142 @@
 :root {
   --azul: #0057B8;
+  --azul-oscuro: #003B7A;
   --rojo: #D7141A;
   --blanco: #FFFFFF;
-  --azul-oscuro: #003B7A;
   --gris: #F2F5F9;
+  --texto: #1C2B3A;
+  --sombra: 0 2px 8px rgba(0, 59, 122, 0.08);
+  --verde: #1DB954;
 }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --gris: #0F1A26;
+    --blanco: #1A2736;
+    --texto: #E6EEF7;
+    --azul-oscuro: #8DBBFF;
+    --sombra: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background: var(--gris);
-  color: var(--azul-oscuro);
+  color: var(--texto);
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
 }
+
 header {
-  background: var(--azul);
-  color: var(--blanco);
-  padding: 20px 16px;
+  background: linear-gradient(135deg, var(--azul) 0%, var(--azul-oscuro) 100%);
+  color: #fff;
+  padding: 22px 18px 18px;
   border-bottom: 6px solid var(--rojo);
+  box-shadow: 0 4px 12px rgba(0, 59, 122, 0.25);
 }
-header h1 { font-size: 1.3rem; }
-header p { font-size: 0.85rem; opacity: 0.9; }
+header h1 { font-size: 1.4rem; font-weight: 700; }
+header p { font-size: 0.88rem; opacity: 0.9; margin-top: 4px; }
+
 nav {
   display: flex;
   background: var(--blanco);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: var(--sombra);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 nav button {
   flex: 1;
   padding: 14px 4px;
   border: none;
   background: none;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   color: var(--azul-oscuro);
   cursor: pointer;
   border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
 }
 nav button.activo {
   color: var(--rojo);
-  font-weight: bold;
+  font-weight: 700;
   border-bottom-color: var(--rojo);
 }
+
 main { padding: 16px; }
 .seccion { display: none; }
-.seccion.activa { display: block; }
+.seccion.activa { display: block; animation: aparecer 0.3s ease; }
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
 .estado {
   background: var(--blanco);
-  border-radius: 8px;
-  padding: 14px;
+  border-radius: 12px;
+  padding: 16px;
   margin-bottom: 14px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  box-shadow: var(--sombra);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
 }
 .punto {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  margin-right: 6px;
+  margin-right: 10px;
+  flex-shrink: 0;
 }
-.abierto .punto { background: #1DB954; }
+.abierto .punto {
+  background: var(--verde);
+  box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.6);
+  animation: pulso 2s infinite;
+}
 .cerrado .punto { background: var(--rojo); }
+@keyframes pulso {
+  0% { box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.6); }
+  70% { box-shadow: 0 0 0 10px rgba(29, 185, 84, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(29, 185, 84, 0); }
+}
+
 .tarjeta {
   background: var(--blanco);
   border-left: 5px solid var(--azul);
-  border-radius: 8px;
-  padding: 14px;
+  border-radius: 12px;
+  padding: 16px;
   margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  box-shadow: var(--sombra);
 }
-.tarjeta h3 { font-size: 1rem; margin-bottom: 4px; }
-.tarjeta p { font-size: 0.9rem; color: #444; line-height: 1.5; }
-.inactiva { border-left-color: #999; opacity: 0.7; }
+.tarjeta h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--azul-oscuro);
+  margin-bottom: 6px;
+}
+.tarjeta p { font-size: 0.92rem; opacity: 0.85; line-height: 1.5; }
+.inactiva { border-left-color: #9AA5B1; opacity: 0.6; }
 .aviso { border-left-color: var(--rojo); }
+
 .etiqueta {
   display: inline-block;
   background: var(--azul);
-  color: var(--blanco);
+  color: #fff;
   font-size: 0.75rem;
-  padding: 2px 8px;
+  font-weight: 600;
+  padding: 3px 10px;
   border-radius: 12px;
-  margin-top: 6px;
+  margin-top: 8px;
 }
-.etiqueta.gris { background: #999; }
-.cargando { color: #666; font-size: 0.9rem; }
-footer { text-align: center; font-size: 0.75rem; color: #666; padding: 16px; }
+.etiqueta.gris { background: #9AA5B1; }
+.cargando { opacity: 0.7; font-size: 0.92rem; }
+
+footer {
+  text-align: center;
+  font-size: 0.78rem;
+  opacity: 0.6;
+  padding: 18px 16px 28px;
+}
