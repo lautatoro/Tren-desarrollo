@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0057B8">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Panel Chofer">
   <title>Panel del chofer</title>
@@ -20,9 +21,8 @@
     .btn:disabled { opacity: .6; cursor: not-allowed; }
     .btn.peligro { background: #D7141A; }
     .btn.secundario { background: none; color: #003B7A; border: 1.5px solid #0057B8; }
-    .msg { margin-top: 10px; font-size: .92rem; min-height: 1.2em; }
+    .msg { margin-top: 10px; font-size: .92rem; min-height: 1.2em; color: #D7141A; }
     .msg.ok { color: #1DB954; }
-    .msg.error { color: #D7141A; }
     .aviso-item { border-left: 5px solid #0057B8; }
     .aviso-item.demora { border-left-color: #F5A623; }
     .aviso-item.corte { border-left-color: #D7141A; }
@@ -33,28 +33,22 @@
 <body>
 <header>
   <h1>Panel del chofer</h1>
-  <p id="usuario-actual">Verificando sesión...</p>
+  <p>Tren al Desarrollo</p>
 </header>
 
 <main class="panel">
 
-  <!-- Pantalla de acceso -->
+  <!-- Login -->
   <section id="vista-login" class="tarjeta oculto">
-    <h2>Iniciá sesión</h2>
-    <p style="margin: 8px 0 14px;">Usá tu cuenta de chofer. Si todavía no tenés una, registrate y esperá la aprobación.</p>
-    <div class="fila">
-      <button class="btn" onclick="abrirIdentidad()">Entrar / Registrarme</button>
+    <h2>Ingresá la clave del panel</h2>
+    <input id="clave" type="password" class="campo" placeholder="Clave" autocomplete="current-password" style="margin-top:10px;">
+    <div class="fila" style="margin-top:10px;">
+      <button class="btn" onclick="entrar()">Entrar</button>
     </div>
+    <p id="msg-login" class="msg" role="status"></p>
   </section>
 
-  <!-- Pantalla de cuenta pendiente -->
-  <section id="vista-pendiente" class="tarjeta oculto">
-    <h2>Cuenta pendiente</h2>
-    <p style="margin: 8px 0 14px;">Tu cuenta todavía no fue aprobada por la administración. Te avisamos cuando puedas publicar avisos.</p>
-    <button class="btn secundario" onclick="cerrarSesion()">Cerrar sesión</button>
-  </section>
-
-  <!-- Panel principal -->
+  <!-- Panel -->
   <section id="vista-panel" class="oculto">
 
     <div class="tarjeta">
@@ -67,7 +61,8 @@
         </select>
       </label>
       <label style="display:block; margin-top:10px;">Aviso
-        <textarea id="texto" class="campo" rows="3" maxlength="300" placeholder="Escribí el aviso para los pasajeros"></textarea>
+        <textarea id="texto" class="campo" rows="3" maxlength="300" placeholder="Escribí el aviso para los pasajeros"
+          oninput="document.getElementById('contador').textContent = this.value.length"></textarea>
       </label>
       <div class="contador"><span id="contador">0</span>/300</div>
       <div class="fila" style="margin-top:6px;">
@@ -86,175 +81,98 @@
     </div>
 
     <div class="tarjeta">
-      <button class="btn secundario" onclick="cerrarSesion()">Cerrar sesión</button>
-      <button id="btn-instalar" class="btn oculto" onclick="instalarApp()" style="margin-left:8px;">Instalar app</button>
+      <button class="btn secundario" onclick="cerrarSesion()">Salir</button>
     </div>
   </section>
 </main>
 
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script>
-  // ---------- Utilidades ----------
+  const URL_API = 'https://tren-panel.lautisuaa.workers.dev';
+  let clave = sessionStorage.getItem('clave-panel') || '';
+
   const escapar = s => String(s ?? '').replace(/[&<>"']/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   function mostrarVista(id) {
-    ['vista-login', 'vista-pendiente', 'vista-panel'].forEach(v =>
+    ['vista-login', 'vista-panel'].forEach(v =>
       document.getElementById(v).classList.toggle('oculto', v !== id));
   }
 
-  function mensaje(id, texto, tipo) {
-    const el = document.getElementById(id);
-    el.textContent = texto;
-    el.className = 'msg ' + (tipo || '');
+  async function api(ruta, opciones = {}) {
+    const r = await fetch(URL_API + ruta, {
+      ...opciones,
+      headers: { 'Content-Type': 'application/json', 'X-Clave': clave }
+    });
+    const cuerpo = await r.json();
+    if (!r.ok) throw new Error(cuerpo.error || 'Error al conectar');
+    return cuerpo;
   }
 
-  // ---------- Identidad (login / registro) ----------
-  const identidad = window.netlifyIdentity;
-
-  function abrirIdentidad() { identidad.open(); }
-  function cerrarSesion() { identidad.logout(); }
-
-  function rolesDe(user) {
-    return (user && user.app_metadata && user.app_metadata.roles) || [];
-  }
-
-  async function tokenActual() {
-    const user = identidad.currentUser();
-    return user ? await user.jwt() : null;
-  }
-
-  function actualizarEstado(user) {
-    if (!user) {
-      document.getElementById('usuario-actual').textContent = 'No hay sesión iniciada';
-      mostrarVista('vista-login');
-      return;
+  async function entrar() {
+    clave = document.getElementById('clave').value.trim();
+    document.getElementById('msg-login').textContent = '';
+    try {
+      await api('/avisos');
+      sessionStorage.setItem('clave-panel', clave);
+      mostrarVista('vista-panel');
+      cargarAvisos();
+    } catch (e) {
+      document.getElementById('msg-login').textContent = e.message;
     }
-    document.getElementById('usuario-actual').textContent = user.email;
-    if (!rolesDe(user).includes('chofer')) {
-      mostrarVista('vista-pendiente');
-      return;
-    }
-    mostrarVista('vista-panel');
-    cargarAvisos();
   }
 
-  identidad.on('init', actualizarEstado);
-  identidad.on('login', user => { identidad.close(); actualizarEstado(user); });
-  identidad.on('logout', () => actualizarEstado(null));
-  identidad.init();
+  function cerrarSesion() {
+    sessionStorage.removeItem('clave-panel');
+    clave = '';
+    document.getElementById('clave').value = '';
+    mostrarVista('vista-login');
+  }
 
-  // ---------- Publicar ----------
-  document.getElementById('texto').addEventListener('input', e => {
-    document.getElementById('contador').textContent = e.target.value.length;
-  });
+  async function cargarAvisos() {
+    const lista = document.getElementById('lista-avisos');
+    document.getElementById('msg-lista').textContent = '';
+    try {
+      const avisos = await api('/avisos');
+      lista.innerHTML = avisos.length ? avisos.map(a =>
+        `<div class="tarjeta aviso-item ${escapar(a.tipo)}">
+           <h3>${escapar(a.fecha)} · ${escapar(a.tipo)}</h3>
+           <p>${escapar(a.texto)}</p>
+         </div>`).join('') : '<p>No hay avisos publicados.</p>';
+    } catch (e) {
+      lista.innerHTML = '';
+      document.getElementById('msg-lista').textContent = e.message;
+    }
+  }
 
   async function publicar() {
     const texto = document.getElementById('texto').value.trim();
-    if (!texto) return mensaje('msg-publicar', 'Escribí un aviso antes de publicar.', 'error');
-
+    const tipo = document.getElementById('tipo').value;
+    const msg = document.getElementById('msg-publicar');
     const btn = document.getElementById('btn-publicar');
-    btn.disabled = true;
-    mensaje('msg-publicar', 'Publicando...');
+    if (!texto) { msg.textContent = 'Escribí un aviso antes de publicar.'; return; }
 
+    btn.disabled = true;
+    msg.textContent = 'Publicando...';
     try {
-      const r = await fetch('/.netlify/functions/publicar', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + await tokenActual()
-        },
-        body: JSON.stringify({ tipo: document.getElementById('tipo').value, texto })
-      });
-      const body = await r.text();
-      if (r.ok) {
-        document.getElementById('texto').value = '';
-        document.getElementById('contador').textContent = '0';
-        mensaje('msg-publicar', 'Aviso publicado', 'ok');
-        cargarAvisos();
-      } else {
-        mensaje('msg-publicar', body, 'error');
-      }
-    } catch {
-      mensaje('msg-publicar', 'Sin conexión. Intentá de nuevo.', 'error');
+      await api('/avisos', { method: 'POST', body: JSON.stringify({ texto, tipo }) });
+      document.getElementById('texto').value = '';
+      document.getElementById('contador').textContent = '0';
+      msg.className = 'msg ok';
+      msg.textContent = 'Aviso publicado';
+      cargarAvisos();
+    } catch (e) {
+      msg.className = 'msg';
+      msg.textContent = e.message;
     } finally {
       btn.disabled = false;
     }
   }
 
-  // ---------- Listar y borrar ----------
-  async function cargarAvisos() {
-    const lista = document.getElementById('lista-avisos');
-    try {
-      const r = await fetch('/.netlify/functions/listar', {
-        headers: { Authorization: 'Bearer ' + await tokenActual() }
-      });
-      if (!r.ok) throw new Error(await r.text());
-      const avisos = await r.json();
-
-      if (!avisos.length) {
-        lista.innerHTML = '<p>No hay avisos publicados.</p>';
-        return;
-      }
-
-      lista.innerHTML = avisos.map((a, i) =>
-        `<div class="tarjeta aviso-item ${escapar(a.tipo)}">
-           <h3>${escapar(a.fecha)} · ${escapar(a.tipo)}</h3>
-           <p>${escapar(a.texto)}</p>
-           <p style="font-size:.8rem; opacity:.7;">Por: ${escapar(a.autor || 'desconocido')}</p>
-           <div class="fila" style="margin-top:8px;">
-             <button class="btn peligro" onclick="borrarAviso(${i})">Borrar</button>
-           </div>
-         </div>`
-      ).join('');
-
-      // Guardamos la lista para saber qué aviso borrar
-      window._avisos = avisos;
-    } catch (e) {
-      lista.innerHTML = '';
-      mensaje('msg-lista', 'No se pudieron cargar los avisos: ' + e.message, 'error');
-    }
-  }
-
-  async function borrarAviso(i) {
-    const aviso = window._avisos[i];
-    if (!confirm('¿Borrar este aviso? Esta acción no se puede deshacer.')) return;
-
-    try {
-      const r = await fetch('/.netlify/functions/borrar', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + await tokenActual()
-        },
-        body: JSON.stringify({ id: aviso.id })
-      });
-      const body = await r.text();
-      mensaje('msg-lista', body, r.ok ? 'ok' : 'error');
-      if (r.ok) cargarAvisos();
-    } catch {
-      mensaje('msg-lista', 'Sin conexión. Intentá de nuevo.', 'error');
-    }
-  }
-
-  // ---------- Instalar como app ----------
-  let promptInstalacion = null;
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    promptInstalacion = e;
-    document.getElementById('btn-instalar').classList.remove('oculto');
-  });
-
-  async function instalarApp() {
-    if (!promptInstalacion) return;
-    promptInstalacion.prompt();
-    await promptInstalacion.userChoice;
-    promptInstalacion = null;
-    document.getElementById('btn-instalar').classList.add('oculto');
-  }
+  // Si ya había sesión en esta pestaña, entra directo
+  if (clave) entrar(); else mostrarVista('vista-login');
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw-panel.js');
+    navigator.serviceWorker.register('sw-panel.js').catch(() => {});
   }
 </script>
 </body>
