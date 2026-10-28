@@ -1,9 +1,11 @@
 // Dirección de los datos (ya configurada con tu usuario)
 const URL_DATOS = 'https://lautatoro.github.io/Tren-desarrollo/datos.json';
+const URL_APP = 'https://lautatoro.github.io/Tren-desarrollo/';
 
-const DURACION_REFERENCIA = 15; // minutos por tramo, si duracion_viaje_minutos es 0
-const ESPERA_REFERENCIA = 2;    // minutos de espera en cada cabecera, si no está en datos.json
-const MINUTOS_AVISO = 5;        // avisar cuántos minutos antes de la salida
+const DURACION_REFERENCIA = 15;
+const ESPERA_REFERENCIA = 2;
+const MINUTOS_AVISO = 5;
+const CLAVE_HISTORIAL = 'tren-historial-avisos';
 
 const ICONOS_AVISO = {
   novedad: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#0057B8"/><rect x="11" y="10" width="2" height="8" rx="1" fill="#fff"/><circle cx="12" cy="7" r="1.3" fill="#fff"/></svg>',
@@ -74,6 +76,13 @@ function proximaHoraDecimal(d) {
   return d.getHours() + d.getMinutes() / 60;
 }
 
+// ---------- COMPARTIR ----------
+
+function compartirWhatsApp() {
+  const texto = 'Mirá la app del Tren al Desarrollo (Santiago del Estero – La Banda): horarios, mapa y avisos. ' + URL_APP;
+  window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+}
+
 // ---------- NOTIFICACIONES ----------
 
 function activarNotificaciones() {
@@ -103,30 +112,57 @@ function revisarAvisos(datos, ahora) {
       const clave = ahora.toDateString() + '-' + h;
       if (ultimoAvisoEnviado !== clave) {
         ultimoAvisoEnviado = clave;
-        new Notification('Tren al Desarrollo', {
-          body: 'Sale el tren desde Fórum en ' + falta + ' minutos (' + formatearHora(h) + ' hs)',
-          icon: 'logo.png'
-        });
+        const texto = 'Sale el tren desde Fórum en ' + falta + ' minutos (' + formatearHora(h) + ' hs)';
+        new Notification('Tren al Desarrollo', { body: texto, icon: 'logo.png' });
+        guardarEnHistorial(texto, ahora);
       }
     }
   }
+}
+
+// ---------- HISTORIAL DE AVISOS ----------
+
+function leerHistorial() {
+  try { return JSON.parse(localStorage.getItem(CLAVE_HISTORIAL)) || []; }
+  catch (e) { return []; }
+}
+
+function guardarEnHistorial(texto, fecha) {
+  const historial = leerHistorial();
+  historial.unshift({ texto: texto, fecha: fecha.toISOString() });
+  try { localStorage.setItem(CLAVE_HISTORIAL, JSON.stringify(historial.slice(0, 50))); }
+  catch (e) { /* almacenamiento lleno o bloqueado: se omite */ }
+}
+
+function formatearFechaHora(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-AR') + ' ' + formatearHora(proximaHoraDecimal(d));
 }
 
 // ---------- RENDER ----------
 
 function renderAvisos(avisos) {
   const contenedor = document.getElementById('lista-avisos');
+  let html = '';
   if (!avisos.length) {
-    contenedor.innerHTML = '<div class="tarjeta"><p>No hay avisos por ahora.</p></div>';
-    return;
+    html = '<div class="tarjeta"><p>No hay avisos por ahora.</p></div>';
+  } else {
+    const ordenados = [...avisos].sort((a, b) => b.fecha.localeCompare(a.fecha));
+    html = ordenados.map(a => {
+      const tipo = ICONOS_AVISO[a.tipo] ? a.tipo : 'novedad';
+      return '<div class="tarjeta aviso aviso-' + tipo + '">' +
+        '<h3><span class="icono-aviso">' + ICONOS_AVISO[tipo] + '</span>' + a.fecha + '</h3>' +
+        '<p>' + a.texto + '</p></div>';
+    }).join('');
   }
-  const ordenados = [...avisos].sort((a, b) => b.fecha.localeCompare(a.fecha));
-  contenedor.innerHTML = ordenados.map(a => {
-    const tipo = ICONOS_AVISO[a.tipo] ? a.tipo : 'novedad';
-    return '<div class="tarjeta aviso aviso-' + tipo + '">' +
-      '<h3><span class="icono-aviso">' + ICONOS_AVISO[tipo] + '</span>' + a.fecha + '</h3>' +
-      '<p>' + a.texto + '</p></div>';
-  }).join('');
+
+  const historial = leerHistorial();
+  if (historial.length) {
+    html += '<div class="tarjeta"><h3>Historial de avisos</h3>' +
+      historial.map(h => '<p class="historial-item"><strong>' + formatearFechaHora(h.fecha) + '</strong><br>' + h.texto + '</p>').join('') +
+      '</div>';
+  }
+  contenedor.innerHTML = html;
 }
 
 function alternarMapa(id) {
@@ -187,14 +223,12 @@ function iniciarMapa(datos) {
   mapa.fitBounds(trazado, { padding: [30, 30] });
 }
 
-// Distancia aproximada entre dos puntos [lat, lng]
 function distancia(a, b) {
   const dLat = b[0] - a[0];
   const dLng = (b[1] - a[1]) * Math.cos(a[0] * Math.PI / 180);
   return Math.sqrt(dLat * dLat + dLng * dLng);
 }
 
-// Punto a una fracción f (0 a 1) del largo total de la traza
 function puntoEnTraza(traza, f) {
   const tramos = [];
   let total = 0;
@@ -215,36 +249,37 @@ function puntoEnTraza(traza, f) {
   return traza[traza.length - 1];
 }
 
-// Posición estimada dentro del horario de servicio.
-// Ciclo: ida (D) → espera en La Banda (E) → vuelta (D) → espera en Fórum (E). Se repite todo el servicio.
-function posicionEstimada(datos, ahora) {
+// Ciclo: ida (D) → espera en La Banda (E) → vuelta (D) → espera en Fórum (E)
+function calcularCiclo(datos) {
+  const D = datos.servicio.duracion_viaje_minutos > 0 ? datos.servicio.duracion_viaje_minutos : DURACION_REFERENCIA;
+  const E = datos.servicio.espera_cabecera_minutos != null ? datos.servicio.espera_cabecera_minutos : ESPERA_REFERENCIA;
+  return { D, E, C: 2 * D + 2 * E };
+}
+
+// Fase del tren (en minutos) dentro del ciclo, o null si no hay servicio
+function faseTren(datos, ahora) {
   const { bloque } = salidasDel(ahora, datos);
   const inicio = parseInt(bloque.desde) * 60;
   const fin = parseInt(bloque.hasta) * 60;
   const minAhora = ahora.getHours() * 60 + ahora.getMinutes();
   if (minAhora < inicio || minAhora >= fin) return null;
+  const { C } = calcularCiclo(datos);
+  return (minAhora - inicio) % C;
+}
 
-  const D = datos.servicio.duracion_viaje_minutos > 0
-    ? datos.servicio.duracion_viaje_minutos
-    : DURACION_REFERENCIA;
-  const E = datos.servicio.espera_cabecera_minutos != null
-    ? datos.servicio.espera_cabecera_minutos
-    : ESPERA_REFERENCIA;
-  const C = 2 * D + 2 * E;
-
+function posicionEstimada(datos, ahora) {
+  const fase = faseTren(datos, ahora);
+  if (fase === null) return null;
+  const { D, E } = calcularCiclo(datos);
   const traza = datos.trazado && datos.trazado.length >= 2
     ? datos.trazado
     : datos.estaciones.filter(e => e.activa && e.lat != null).map(e => [e.lat, e.lng]);
   if (traza.length < 2) return null;
 
-  const fase = (minAhora - inicio) % C;
-
-  if (fase <= D) return puntoEnTraza(traza, fase / D);                 // ida
-  if (fase <= D + E) return traza[traza.length - 1];                   // espera en La Banda
-  if (fase <= 2 * D + E) {                                             // vuelta
-    return puntoEnTraza([...traza].reverse(), (fase - D - E) / D);
-  }
-  return traza[0];                                                     // espera en Fórum
+  if (fase <= D) return puntoEnTraza(traza, fase / D);
+  if (fase <= D + E) return traza[traza.length - 1];
+  if (fase <= 2 * D + E) return puntoEnTraza([...traza].reverse(), (fase - D - E) / D);
+  return traza[0];
 }
 
 function actualizarTren(datos) {
@@ -261,6 +296,29 @@ function actualizarTren(datos) {
   } else {
     marcadorTren.setLatLng(pos);
   }
+}
+
+// ---------- HORARIOS DEL DÍA (modo Hoy) ----------
+
+function renderSalidasHoy(datos, salidas, ahora) {
+  const contenedor = document.getElementById('lista-salidas');
+  const fase = faseTren(datos, ahora);
+  const { C } = calcularCiclo(datos);
+  const minAhora = ahora.getHours() * 60 + ahora.getMinutes();
+  const { D, E } = calcularCiclo(datos);
+
+  contenedor.innerHTML = salidas.map(h => {
+    const inicioSalida = h * 60;
+    const dentro = fase !== null && minAhora >= inicioSalida && minAhora < inicioSalida + C;
+    const sentido = dentro
+      ? (minAhora - inicioSalida <= D ? 'en viaje hacia La Banda' : (minAhora - inicioSalida <= D + E ? 'en La Banda' : 'en viaje hacia Fórum'))
+      : '';
+    const fila = '<div class="fila-salida ' + (dentro ? 'actual' : '') + '">' +
+      '<span>' + formatearHora(h) + ' hs</span>' +
+      (dentro ? '<span class="etiqueta">' + sentido + '</span>' : '') +
+      '</div>';
+    return fila;
+  }).join('');
 }
 
 // ---------- ACTUALIZACIÓN ----------
@@ -299,8 +357,7 @@ function renderizar(datos) {
     'De ' + s.lunes_a_viernes.desde + ' a ' + s.lunes_a_viernes.hasta + ' hs<br>Salidas cada ' + s.frecuencia_minutos + ' minutos';
   document.getElementById('h-finde').innerHTML =
     'De ' + s.fines_de_semana_y_feriados.desde + ' a ' + s.fines_de_semana_y_feriados.hasta + ' hs<br>Salidas cada ' + s.frecuencia_minutos + ' minutos';
-  document.getElementById('lista-salidas').innerHTML =
-    salidas.map(h => formatearHora(h) + ' hs').join('<br>');
+  renderSalidasHoy(datos, salidas, ahora);
 
   renderEstaciones(datos.estaciones);
   renderAvisos(datos.avisos);
@@ -312,7 +369,6 @@ function actualizarCuenta() {
   if (datosCargados) renderizar(datosCargados);
 }
 
-// Pantalla de carga: se oculta cuando llegan los datos
 function ocultarCarga() {
   const pantalla = document.getElementById('pantalla-carga');
   if (!pantalla) return;
