@@ -8,7 +8,7 @@
   "tramo_activo": ["Fórum", "Nodo Tecnológico", "Banda Centro"],
   "estaciones": [
     { "nombre": "Estación Fórum", "activa": true, "nota": "" },
-    { "nombre": "Estación Botánico / Estadio Único Madre de Ciudades", "activa": false, "nota": "" },
+    { "nombre": "Estación Botánico / Estadio Único Madre de Ciudades", "activa": true, "nota": "" },
     { "nombre": "Estación Nodo Tecnológico", "activa": true, "nota": "" },
     { "nombre": "Estación Banda Centro", "activa": true, "nota": "" }
   ],
