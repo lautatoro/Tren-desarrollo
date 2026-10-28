@@ -1,6 +1,8 @@
 // Dirección de los datos (ya configurada con tu usuario)
 const URL_DATOS = 'https://lautatoro.github.io/Tren-desarrollo/datos.json';
 
+const ICONOS_AVISO = { novedad: '📢', demora: '⏳', corte: '⛔' };
+
 function mostrar(id, boton) {
   document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('activo'));
@@ -45,6 +47,21 @@ function formatearHora(h) {
 
 function proximaHoraDecimal(d) {
   return d.getHours() + d.getMinutes() / 60;
+}
+
+function renderAvisos(avisos) {
+  const contenedor = document.getElementById('lista-avisos');
+  if (!avisos.length) {
+    contenedor.innerHTML = '<div class="tarjeta"><p>No hay avisos por ahora.</p></div>';
+    return;
+  }
+  const ordenados = [...avisos].sort((a, b) => b.fecha.localeCompare(a.fecha));
+  contenedor.innerHTML = ordenados.map(a => {
+    const tipo = ICONOS_AVISO[a.tipo] ? a.tipo : 'novedad';
+    return '<div class="tarjeta aviso aviso-' + tipo + '">' +
+      '<h3>' + ICONOS_AVISO[tipo] + ' ' + a.fecha + '</h3>' +
+      '<p>' + a.texto + '</p></div>';
+  }).join('');
 }
 
 let datosCargados = null;
@@ -92,12 +109,9 @@ function renderizar(datos) {
     '<span class="etiqueta ' + (e.activa ? '' : 'gris') + '">' + (e.activa ? 'Activa' : 'Sin servicio') + '</span></div>'
   ).join('');
 
-  document.getElementById('lista-avisos').innerHTML = datos.avisos.length
-    ? datos.avisos.map(a => '<div class="tarjeta aviso"><h3>' + a.fecha + '</h3><p>' + a.texto + '</p></div>').join('')
-    : '<div class="tarjeta"><p>No hay avisos por ahora.</p></div>';
+  renderAvisos(datos.avisos);
 }
 
-// Actualiza la pantalla cada segundo (cuenta regresiva) sin pedir datos de nuevo
 function actualizarCuenta() {
   if (datosCargados) renderizar(datosCargados);
 }
