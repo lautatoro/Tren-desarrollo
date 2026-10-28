@@ -1,7 +1,7 @@
 // Dirección de los datos (ya configurada con tu usuario)
 const URL_DATOS = 'https://lautatoro.github.io/Tren-desarrollo/datos.json';
 
-const DURACION_REFERENCIA = 15; // minutos, si duracion_viaje_minutos es 0
+const DURACION_REFERENCIA = 15; // minutos por tramo, si duracion_viaje_minutos es 0
 const MINUTOS_AVISO = 5; // avisar cuántos minutos antes de la salida
 
 const ICONOS_AVISO = {
@@ -97,14 +97,13 @@ function revisarAvisos(datos, ahora) {
   const { salidas } = salidasDel(ahora, datos);
   const minAhora = ahora.getHours() * 60 + ahora.getMinutes();
   for (const h of salidas) {
-    const minSalida = h * 60;
-    const falta = minSalida - minAhora;
+    const falta = h * 60 - minAhora;
     if (falta > 0 && falta <= MINUTOS_AVISO) {
       const clave = ahora.toDateString() + '-' + h;
       if (ultimoAvisoEnviado !== clave) {
         ultimoAvisoEnviado = clave;
         new Notification('Tren al Desarrollo', {
-          body: 'Sale el tren en ' + falta + ' minutos (' + formatearHora(h) + ' hs)',
+          body: 'Sale el tren desde Fórum en ' + falta + ' minutos (' + formatearHora(h) + ' hs)',
           icon: 'logo.png'
         });
       }
@@ -187,6 +186,7 @@ function iniciarMapa(datos) {
   mapa.fitBounds(trazado, { padding: [30, 30] });
 }
 
+// Posición estimada: ida (Fórum → Banda) y vuelta (Banda → Fórum), con la misma duración
 function posicionEstimada(datos, ahora) {
   const { salidas } = salidasDel(ahora, datos);
   const minAhora = ahora.getHours() * 60 + ahora.getMinutes();
@@ -197,21 +197,25 @@ function posicionEstimada(datos, ahora) {
   }
   if (ultimaSalida === null) return null;
 
-  const transcurrido = minAhora - ultimaSalida;
   const duracion = datos.servicio.duracion_viaje_minutos > 0
     ? datos.servicio.duracion_viaje_minutos
     : DURACION_REFERENCIA;
-  if (transcurrido > duracion) return null;
+
+  const t = minAhora - ultimaSalida;
+  if (t > duracion * 2) return null;
 
   const ruta = datos.estaciones.filter(e => e.activa && e.lat != null && e.lng != null);
   if (ruta.length < 2) return null;
 
-  const f = transcurrido / duracion;
-  const pos = f * (ruta.length - 1);
-  const i = Math.min(Math.floor(pos), ruta.length - 2);
-  const t = pos - i;
-  const a = ruta[i], b = ruta[i + 1];
-  return [a.lat + (b.lat - a.lat) * t, a.lng + (b.lng - a.lng) * t];
+  const ida = t <= duracion;
+  const fraccion = ida ? t / duracion : (t - duracion) / duracion;
+  const recorrido = ida ? ruta : [...ruta].reverse();
+
+  const pos = fraccion * (recorrido.length - 1);
+  const i = Math.min(Math.floor(pos), recorrido.length - 2);
+  const k = pos - i;
+  const a = recorrido[i], b = recorrido[i + 1];
+  return [a.lat + (b.lat - a.lat) * k, a.lng + (b.lng - a.lng) * k];
 }
 
 function actualizarTren(datos) {
@@ -279,7 +283,14 @@ function actualizarCuenta() {
   if (datosCargados) renderizar(datosCargados);
 }
 
-// Mostrar la pantalla de carga hasta que lleguen los datos
+// Pantalla de carga: se oculta cuando llegan los datos
+function ocultarCarga() {
+  const pantalla = document.getElementById('pantalla-carga');
+  if (!pantalla) return;
+  pantalla.classList.add('oculta');
+  setTimeout(() => pantalla.remove(), 600);
+}
+
 fetch(URL_DATOS + '?v=' + Date.now())
   .then(r => r.json())
   .then(datos => {
@@ -296,12 +307,7 @@ fetch(URL_DATOS + '?v=' + Date.now())
     ocultarCarga();
   });
 
-function ocultarCarga() {
-  const pantalla = document.getElementById('pantalla-carga');
-  pantalla.classList.add('oculta');
-  setTimeout(() => pantalla.remove(), 600);
-}
-
-if (Notification && Notification.permission === 'granted') {
-  document.getElementById('btn-notificar').textContent = 'Notificaciones activas';
+if ('Notification' in window && Notification.permission === 'granted') {
+  const btn = document.getElementById('btn-notificar');
+  if (btn) btn.textContent = 'Notificaciones activas';
 }
