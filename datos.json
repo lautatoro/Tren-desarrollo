@@ -122,6 +122,12 @@
     },
     {
       "fecha": "2026-10-28",
+      "tipo": "corte",
+      "texto": "Mantenimiento de railes",
+      "autor": "juan"
+    },
+    {
+      "fecha": "2026-10-28",
       "tipo": "novedad",
       "texto": "Servicio habilitado hasta Estación Fórum. Información de referencia, verificar con el servicio oficial."
     }
