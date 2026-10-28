@@ -1,47 +1,261 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel del chofer</title>
-<link rel="stylesheet" href="../estilos.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0057B8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Panel Chofer">
+  <title>Panel del chofer</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="../logo.png">
+  <link rel="stylesheet" href="../estilos.css">
+  <style>
+    .panel { max-width: 480px; margin: 0 auto; padding: 16px; }
+    .campo { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #C5D3E3;
+             border-radius: 12px; font: inherit; background: #fff; color: #1C2B3A; }
+    .fila { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+    .btn { border: none; border-radius: 999px; padding: 10px 18px; font: inherit; font-weight: 600;
+           color: #fff; background: linear-gradient(135deg, #0057B8, #003B7A); cursor: pointer; }
+    .btn:disabled { opacity: .6; cursor: not-allowed; }
+    .btn.peligro { background: #D7141A; }
+    .btn.secundario { background: none; color: #003B7A; border: 1.5px solid #0057B8; }
+    .msg { margin-top: 10px; font-size: .92rem; min-height: 1.2em; }
+    .msg.ok { color: #1DB954; }
+    .msg.error { color: #D7141A; }
+    .aviso-item { border-left: 5px solid #0057B8; }
+    .aviso-item.demora { border-left-color: #F5A623; }
+    .aviso-item.corte { border-left-color: #D7141A; }
+    .oculto { display: none !important; }
+    .contador { font-size: .8rem; opacity: .7; text-align: right; }
+  </style>
 </head>
 <body>
-<header><h1>Panel del chofer</h1></header>
-<main>
-  <div class="tarjeta">
-    <label>Usuario<br><input id="usuario" style="width:100%;padding:10px;"></label>
-    <label>Contraseña<br><input id="clave" type="password" style="width:100%;padding:10px;"></label>
-  </div>
-  <div class="tarjeta">
-    <label>Tipo<br>
-      <select id="tipo" style="width:100%;padding:10px;">
-        <option value="novedad">Novedad</option>
-        <option value="demora">Demora</option>
-        <option value="corte">Corte</option>
-      </select>
-    </label>
-    <label style="display:block;margin-top:10px;">Aviso<br>
-      <textarea id="texto" rows="3" style="width:100%;padding:10px;"></textarea>
-    </label>
-    <button class="mapa" onclick="publicar()" style="margin-top:10px;">Publicar aviso</button>
-    <p id="resultado" style="margin-top:10px;"></p>
-  </div>
+<header>
+  <h1>Panel del chofer</h1>
+  <p id="usuario-actual">Verificando sesión...</p>
+</header>
+
+<main class="panel">
+
+  <!-- Pantalla de acceso -->
+  <section id="vista-login" class="tarjeta oculto">
+    <h2>Iniciá sesión</h2>
+    <p style="margin: 8px 0 14px;">Usá tu cuenta de chofer. Si todavía no tenés una, registrate y esperá la aprobación.</p>
+    <div class="fila">
+      <button class="btn" onclick="abrirIdentidad()">Entrar / Registrarme</button>
+    </div>
+  </section>
+
+  <!-- Pantalla de cuenta pendiente -->
+  <section id="vista-pendiente" class="tarjeta oculto">
+    <h2>Cuenta pendiente</h2>
+    <p style="margin: 8px 0 14px;">Tu cuenta todavía no fue aprobada por la administración. Te avisamos cuando puedas publicar avisos.</p>
+    <button class="btn secundario" onclick="cerrarSesion()">Cerrar sesión</button>
+  </section>
+
+  <!-- Panel principal -->
+  <section id="vista-panel" class="oculto">
+
+    <div class="tarjeta">
+      <h2>Publicar aviso</h2>
+      <label style="display:block; margin-top:10px;">Tipo
+        <select id="tipo" class="campo">
+          <option value="novedad">Novedad</option>
+          <option value="demora">Demora</option>
+          <option value="corte">Corte</option>
+        </select>
+      </label>
+      <label style="display:block; margin-top:10px;">Aviso
+        <textarea id="texto" class="campo" rows="3" maxlength="300" placeholder="Escribí el aviso para los pasajeros"></textarea>
+      </label>
+      <div class="contador"><span id="contador">0</span>/300</div>
+      <div class="fila" style="margin-top:6px;">
+        <button id="btn-publicar" class="btn" onclick="publicar()">Publicar aviso</button>
+      </div>
+      <p id="msg-publicar" class="msg" role="status"></p>
+    </div>
+
+    <div class="tarjeta">
+      <div class="fila">
+        <h2>Avisos publicados</h2>
+        <button class="btn secundario" onclick="cargarAvisos()">Actualizar</button>
+      </div>
+      <div id="lista-avisos" style="margin-top:12px;"></div>
+      <p id="msg-lista" class="msg" role="status"></p>
+    </div>
+
+    <div class="tarjeta">
+      <button class="btn secundario" onclick="cerrarSesion()">Cerrar sesión</button>
+      <button id="btn-instalar" class="btn oculto" onclick="instalarApp()" style="margin-left:8px;">Instalar app</button>
+    </div>
+  </section>
 </main>
+
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script>
-async function publicar() {
-  const r = await fetch('/.netlify/functions/cambiar', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      usuario: document.getElementById('usuario').value,
-      clave: document.getElementById('clave').value,
-      tipo: document.getElementById('tipo').value,
-      texto: document.getElementById('texto').value
-    })
+  // ---------- Utilidades ----------
+  const escapar = s => String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  function mostrarVista(id) {
+    ['vista-login', 'vista-pendiente', 'vista-panel'].forEach(v =>
+      document.getElementById(v).classList.toggle('oculto', v !== id));
+  }
+
+  function mensaje(id, texto, tipo) {
+    const el = document.getElementById(id);
+    el.textContent = texto;
+    el.className = 'msg ' + (tipo || '');
+  }
+
+  // ---------- Identidad (login / registro) ----------
+  const identidad = window.netlifyIdentity;
+
+  function abrirIdentidad() { identidad.open(); }
+  function cerrarSesion() { identidad.logout(); }
+
+  function rolesDe(user) {
+    return (user && user.app_metadata && user.app_metadata.roles) || [];
+  }
+
+  async function tokenActual() {
+    const user = identidad.currentUser();
+    return user ? await user.jwt() : null;
+  }
+
+  function actualizarEstado(user) {
+    if (!user) {
+      document.getElementById('usuario-actual').textContent = 'No hay sesión iniciada';
+      mostrarVista('vista-login');
+      return;
+    }
+    document.getElementById('usuario-actual').textContent = user.email;
+    if (!rolesDe(user).includes('chofer')) {
+      mostrarVista('vista-pendiente');
+      return;
+    }
+    mostrarVista('vista-panel');
+    cargarAvisos();
+  }
+
+  identidad.on('init', actualizarEstado);
+  identidad.on('login', user => { identidad.close(); actualizarEstado(user); });
+  identidad.on('logout', () => actualizarEstado(null));
+  identidad.init();
+
+  // ---------- Publicar ----------
+  document.getElementById('texto').addEventListener('input', e => {
+    document.getElementById('contador').textContent = e.target.value.length;
   });
-  document.getElementById('resultado').textContent = await r.text();
-}
+
+  async function publicar() {
+    const texto = document.getElementById('texto').value.trim();
+    if (!texto) return mensaje('msg-publicar', 'Escribí un aviso antes de publicar.', 'error');
+
+    const btn = document.getElementById('btn-publicar');
+    btn.disabled = true;
+    mensaje('msg-publicar', 'Publicando...');
+
+    try {
+      const r = await fetch('/.netlify/functions/publicar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + await tokenActual()
+        },
+        body: JSON.stringify({ tipo: document.getElementById('tipo').value, texto })
+      });
+      const body = await r.text();
+      if (r.ok) {
+        document.getElementById('texto').value = '';
+        document.getElementById('contador').textContent = '0';
+        mensaje('msg-publicar', 'Aviso publicado', 'ok');
+        cargarAvisos();
+      } else {
+        mensaje('msg-publicar', body, 'error');
+      }
+    } catch {
+      mensaje('msg-publicar', 'Sin conexión. Intentá de nuevo.', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ---------- Listar y borrar ----------
+  async function cargarAvisos() {
+    const lista = document.getElementById('lista-avisos');
+    try {
+      const r = await fetch('/.netlify/functions/listar', {
+        headers: { Authorization: 'Bearer ' + await tokenActual() }
+      });
+      if (!r.ok) throw new Error(await r.text());
+      const avisos = await r.json();
+
+      if (!avisos.length) {
+        lista.innerHTML = '<p>No hay avisos publicados.</p>';
+        return;
+      }
+
+      lista.innerHTML = avisos.map((a, i) =>
+        `<div class="tarjeta aviso-item ${escapar(a.tipo)}">
+           <h3>${escapar(a.fecha)} · ${escapar(a.tipo)}</h3>
+           <p>${escapar(a.texto)}</p>
+           <p style="font-size:.8rem; opacity:.7;">Por: ${escapar(a.autor || 'desconocido')}</p>
+           <div class="fila" style="margin-top:8px;">
+             <button class="btn peligro" onclick="borrarAviso(${i})">Borrar</button>
+           </div>
+         </div>`
+      ).join('');
+
+      // Guardamos la lista para saber qué aviso borrar
+      window._avisos = avisos;
+    } catch (e) {
+      lista.innerHTML = '';
+      mensaje('msg-lista', 'No se pudieron cargar los avisos: ' + e.message, 'error');
+    }
+  }
+
+  async function borrarAviso(i) {
+    const aviso = window._avisos[i];
+    if (!confirm('¿Borrar este aviso? Esta acción no se puede deshacer.')) return;
+
+    try {
+      const r = await fetch('/.netlify/functions/borrar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + await tokenActual()
+        },
+        body: JSON.stringify({ id: aviso.id })
+      });
+      const body = await r.text();
+      mensaje('msg-lista', body, r.ok ? 'ok' : 'error');
+      if (r.ok) cargarAvisos();
+    } catch {
+      mensaje('msg-lista', 'Sin conexión. Intentá de nuevo.', 'error');
+    }
+  }
+
+  // ---------- Instalar como app ----------
+  let promptInstalacion = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    promptInstalacion = e;
+    document.getElementById('btn-instalar').classList.remove('oculto');
+  });
+
+  async function instalarApp() {
+    if (!promptInstalacion) return;
+    promptInstalacion.prompt();
+    await promptInstalacion.userChoice;
+    promptInstalacion = null;
+    document.getElementById('btn-instalar').classList.add('oculto');
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw-panel.js');
+  }
 </script>
 </body>
 </html>
