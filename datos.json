@@ -6,39 +6,47 @@
     "frecuencia_minutos": 60,
     "duracion_viaje_minutos": 0
   },
-  "tramo_activo": ["Fórum", "Nodo Tecnológico", "Banda Centro"],
+  "tramo_activo": ["Fórum", "Botánico", "Nodo Tecnológico", "Banda Centro"],
   "estaciones": [
     {
       "nombre": "Estación Fórum",
       "activa": true,
       "nota": "",
-      "direccion": "Santiago del Estero (revisar dirección exacta)",
-      "servicios_cercanos": ["Revisar"],
-      "mapa": "https://www.google.com/maps/search/?api=1&query=Estacion+Forum+Santiago+del+Estero"
+      "direccion": "Av. Roca y Perú, Santiago del Estero (revisar)",
+      "servicios_cercanos": ["Centro de Convenciones Fórum", "Terminal de Ómnibus"],
+      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.7788,-64.2628",
+      "lat": -27.7788,
+      "lng": -64.2628
     },
     {
       "nombre": "Estación Botánico / Estadio Único Madre de Ciudades",
       "activa": true,
       "nota": "",
-      "direccion": "Santiago del Estero (revisar dirección exacta)",
-      "servicios_cercanos": ["Estadio Único Madre de Ciudades"],
-      "mapa": "https://www.google.com/maps/search/?api=1&query=Estadio+Unico+Madre+de+Ciudades"
+      "direccion": "Frente al Jardín Botánico, Santiago del Estero (revisar)",
+      "servicios_cercanos": ["Estadio Único Madre de Ciudades", "Jardín Botánico"],
+      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.7667,-64.2528",
+      "lat": -27.7667,
+      "lng": -64.2528
     },
     {
       "nombre": "Estación Nodo Tecnológico",
       "activa": true,
       "nota": "",
-      "direccion": "Santiago del Estero (revisar dirección exacta)",
-      "servicios_cercanos": ["Revisar"],
-      "mapa": "https://www.google.com/maps/search/?api=1&query=Nodo+Tecnologico+Santiago+del+Estero"
+      "direccion": "Nodo Tecnológico / Tecnópolis, La Banda (revisar)",
+      "servicios_cercanos": ["Tecnópolis"],
+      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.7570,-64.2613",
+      "lat": -27.7570,
+      "lng": -64.2613
     },
     {
       "nombre": "Estación Banda Centro",
       "activa": true,
       "nota": "",
-      "direccion": "La Banda, Santiago del Estero (revisar dirección exacta)",
-      "servicios_cercanos": ["Revisar"],
-      "mapa": "https://www.google.com/maps/search/?api=1&query=Centro+La+Banda+Santiago+del+Estero"
+      "direccion": "Av. Cmdte. Besares, La Banda (revisar)",
+      "servicios_cercanos": ["Ferrocarril Mitre"],
+      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.7325,-64.2394",
+      "lat": -27.7325,
+      "lng": -64.2394
     }
   ],
   "avisos": [
