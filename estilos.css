@@ -233,3 +233,10 @@ footer {
   font-size: 0.85rem;
   font-weight: 600;
 }
+
+.acciones { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+button.mapa { border: none; cursor: pointer; font-family: inherit; }
+.mapa.secundario { background: none; color: var(--azul-oscuro); border: 1.5px solid var(--azul); }
+.caja-mapa { display: none; margin-top: 12px; border-radius: 14px; overflow: hidden; }
+.caja-mapa.visible { display: block; }
+.caja-mapa iframe { width: 100%; height: 240px; border: 0; display: block; }
