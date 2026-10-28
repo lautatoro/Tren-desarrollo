@@ -29,6 +29,12 @@ let marcadorTren = null;
 let datosCargados = null;
 let ultimoAvisoEnviado = null;
 
+// Evita inyección de HTML al mostrar textos que vienen de datos.json
+function escapar(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 function mostrar(id, boton) {
   document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('activo'));
@@ -101,6 +107,12 @@ function faseTren(datos, ahora) {
   return (minAhora - inicio) % C;
 }
 
+// ---------- SERVICIO DETENIDO ----------
+
+function servicioDetenido(datos) {
+  return !!(datos.servicio_detenido && datos.servicio_detenido.activo);
+}
+
 // ---------- COMPARTIR ----------
 
 function compartirWhatsApp() {
@@ -129,6 +141,7 @@ function activarNotificaciones() {
 
 function revisarAvisos(datos, ahora) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (servicioDetenido(datos)) return;
   const { salidas } = salidasDel(ahora, datos);
   const minAhora = ahora.getHours() * 60 + ahora.getMinutes();
   for (const h of salidas) {
@@ -164,7 +177,7 @@ function formatearFechaHora(iso) {
   return d.toLocaleDateString('es-AR') + ' ' + formatearHora(proximaHoraDecimal(d));
 }
 
-// ---------- RENDER (cada minuto o al llegar datos) ----------
+// ---------- RENDER ----------
 
 function renderAvisos(avisos) {
   const contenedor = document.getElementById('lista-avisos');
@@ -176,14 +189,14 @@ function renderAvisos(avisos) {
     html = ordenados.map(a => {
       const tipo = ICONOS_AVISO[a.tipo] ? a.tipo : 'novedad';
       return '<div class="tarjeta aviso aviso-' + tipo + '">' +
-        '<h3><span class="icono-aviso">' + ICONOS_AVISO[tipo] + '</span>' + a.fecha + '</h3>' +
-        '<p>' + a.texto + '</p></div>';
+        '<h3><span class="icono-aviso">' + ICONOS_AVISO[tipo] + '</span>' + escapar(a.fecha) + '</h3>' +
+        '<p>' + escapar(a.texto) + '</p></div>';
     }).join('');
   }
   const historial = leerHistorial();
   if (historial.length) {
     html += '<div class="tarjeta"><h3>Historial de avisos</h3>' +
-      historial.map(h => '<p class="historial-item"><strong>' + formatearFechaHora(h.fecha) + '</strong><br>' + h.texto + '</p>').join('') +
+      historial.map(h => '<p class="historial-item"><strong>' + formatearFechaHora(h.fecha) + '</strong><br>' + escapar(h.texto) + '</p>').join('') +
       '</div>';
   }
   contenedor.innerHTML = html;
@@ -199,18 +212,18 @@ function alternarMapa(id) {
 function renderEstaciones(estaciones) {
   const contenedor = document.getElementById('lista-estaciones');
   contenedor.innerHTML = estaciones.map((e, i) => {
-    const cercanos = (e.servicios_cercanos || []).map(s => '<span class="etiqueta gris">' + s + '</span>').join(' ');
+    const cercanos = (e.servicios_cercanos || []).map(s => '<span class="etiqueta gris">' + escapar(s) + '</span>').join(' ');
     const embed = 'https://www.google.com/maps?q=' + e.lat + ',' + e.lng + '&output=embed';
     return '<div class="tarjeta ' + (e.activa ? '' : 'inactiva') + '">' +
-      '<h3>' + e.nombre + '</h3>' +
+      '<h3>' + escapar(e.nombre) + '</h3>' +
       '<p>' + (e.activa ? 'Tramo activo' : 'Sin servicio') + '</p>' +
-      '<p style="margin-top:6px;">📍 ' + e.direccion + '</p>' +
+      '<p style="margin-top:6px;">📍 ' + escapar(e.direccion) + '</p>' +
       (cercanos ? '<p style="margin-top:6px;">Cerca: ' + cercanos + '</p>' : '') +
       '<div class="acciones">' +
         '<button class="mapa" id="btn-' + i + '" onclick="alternarMapa(' + i + ')">Ver mapa</button>' +
-        '<a class="mapa secundario" href="' + e.mapa + '" target="_blank" rel="noopener">Abrir en Maps</a>' +
+        '<a class="mapa secundario" href="' + escapar(e.mapa) + '" target="_blank" rel="noopener">Abrir en Maps</a>' +
       '</div>' +
-      '<div class="caja-mapa" id="mapa-' + i + '" data-src="' + embed + '"></div>' +
+      '<div class="caja-mapa" id="mapa-' + i + '" data-src="' + escapar(embed) + '"></div>' +
       '</div>';
   }).join('');
 }
@@ -264,7 +277,7 @@ function iniciarMapa(datos) {
     L.circleMarker([e.lat, e.lng], {
       radius: 8, color: '#fff', weight: 3,
       fillColor: e.activa ? '#0057B8' : '#9AA5B1', fillOpacity: 1
-    }).addTo(mapa).bindPopup('<strong>' + e.nombre + '</strong>');
+    }).addTo(mapa).bindPopup('<strong>' + escapar(e.nombre) + '</strong>');
   });
 
   mapa.fitBounds(trazado, { padding: [30, 30] });
@@ -313,7 +326,8 @@ function posicionEstimada(datos, ahora) {
 
 function actualizarTren(datos) {
   if (!mapa) return;
-  const pos = posicionEstimada(datos, new Date());
+  // Con servicio detenido, el tren no se muestra
+  const pos = servicioDetenido(datos) ? null : posicionEstimada(datos, new Date());
   if (!pos) {
     if (marcadorTren) { marcadorTren.remove(); marcadorTren = null; }
     return;
@@ -329,7 +343,7 @@ function actualizarTren(datos) {
 
 // ---------- ACTUALIZACIÓN ----------
 
-// Cada segundo: solo estado, cuenta regresiva y posición del tren
+// Cada segundo: estado, cuenta regresiva y posición del tren
 function actualizarRapido(datos) {
   const ahora = new Date();
   const { salidas, bloque } = salidasDel(ahora, datos);
@@ -337,19 +351,29 @@ function actualizarRapido(datos) {
   const abierto = hora >= parseInt(bloque.desde) && hora < parseInt(bloque.hasta);
 
   const estado = document.getElementById('estado-servicio');
-  const nuevaClase = 'estado ' + (abierto ? 'abierto' : 'cerrado');
-  if (estado.className !== nuevaClase) estado.className = nuevaClase;
-  const textoEstado = abierto ? 'Servicio en horario' : 'Fuera de horario de servicio';
-  if (estado.dataset.texto !== textoEstado) {
-    estado.innerHTML = '<span class="punto"></span><strong>' + textoEstado + '</strong>';
-    estado.dataset.texto = textoEstado;
+  let clase, texto, detalle = '';
+
+  if (servicioDetenido(datos)) {
+    clase = 'cerrado';
+    texto = 'Servicio detenido';
+    detalle = '<br><small>' + escapar(datos.servicio_detenido.motivo) + '</small>';
+  } else {
+    clase = abierto ? 'abierto' : 'cerrado';
+    texto = abierto ? 'Servicio en horario' : 'Fuera de horario de servicio';
+  }
+
+  const claveEstado = clase + '|' + texto + '|' + detalle;
+  if (estado.dataset.clave !== claveEstado) {
+    estado.className = 'estado ' + clase;
+    estado.innerHTML = '<span class="punto"></span><strong>' + texto + '</strong>' + detalle;
+    estado.dataset.clave = claveEstado;
   }
 
   const proxima = proximaSalidaDate(ahora, salidas);
-  document.getElementById('proxima-salida').textContent = proxima
+  document.getElementById('proxima-salida').textContent = proxima && !servicioDetenido(datos)
     ? 'Hoy a las ' + formatearHora(proximaHoraDecimal(proxima))
-    : 'Sin más salidas hoy.';
-  document.getElementById('cuenta-regresiva').textContent = proxima
+    : (servicioDetenido(datos) ? 'Sin salidas mientras el servicio esté detenido.' : 'Sin más salidas hoy.');
+  document.getElementById('cuenta-regresiva').textContent = proxima && !servicioDetenido(datos)
     ? 'Faltan ' + formatearCuenta(proxima - ahora) : '';
 
   actualizarTren(datos);
