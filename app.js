@@ -1,8 +1,26 @@
 // Dirección de los datos (ya configurada con tu usuario)
 const URL_DATOS = 'https://lautatoro.github.io/Tren-desarrollo/datos.json';
 
-const ICONOS_AVISO = { novedad: '📢', demora: '⏳', corte: '⛔' };
 const DURACION_REFERENCIA = 15; // minutos, si duracion_viaje_minutos es 0
+
+// Íconos dibujados en SVG (sin emojis)
+const ICONOS_AVISO = {
+  novedad: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#0057B8"/><rect x="11" y="10" width="2" height="8" rx="1" fill="#fff"/><circle cx="12" cy="7" r="1.3" fill="#fff"/></svg>',
+  demora: '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="9" fill="none" stroke="#F5A623" stroke-width="2.5"/><path d="M12 8v5l3 2" stroke="#F5A623" stroke-width="2.2" fill="none" stroke-linecap="round"/><rect x="9" y="1" width="6" height="2.5" rx="1" fill="#F5A623"/></svg>',
+  corte: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#D7141A"/><rect x="6" y="10.5" width="12" height="3" rx="1" fill="#fff"/></svg>'
+};
+
+// Trencito dibujado en SVG, visto de costado, mirando a la derecha
+const TREN_SVG = '<svg viewBox="0 0 60 34" xmlns="http://www.w3.org/2000/svg">' +
+  '<path d="M4 22 Q4 8 18 8 L44 8 Q54 8 56 18 L56 24 Q56 27 53 27 L7 27 Q4 27 4 24 Z" fill="#FFFFFF" stroke="#0057B8" stroke-width="2"/>' +
+  '<path d="M4 17 L56 17" stroke="#D7141A" stroke-width="3"/>' +
+  '<rect x="11" y="12" width="8" height="6" rx="1" fill="#0057B8"/>' +
+  '<rect x="22" y="12" width="8" height="6" rx="1" fill="#0057B8"/>' +
+  '<rect x="33" y="12" width="8" height="6" rx="1" fill="#0057B8"/>' +
+  '<rect x="44" y="12" width="7" height="6" rx="1" fill="#0057B8"/>' +
+  '<circle cx="15" cy="29" r="4" fill="#003B7A"/>' +
+  '<circle cx="45" cy="29" r="4" fill="#003B7A"/>' +
+  '</svg>';
 
 let mapa = null;
 let marcadorTren = null;
@@ -64,7 +82,7 @@ function renderAvisos(avisos) {
   contenedor.innerHTML = ordenados.map(a => {
     const tipo = ICONOS_AVISO[a.tipo] ? a.tipo : 'novedad';
     return '<div class="tarjeta aviso aviso-' + tipo + '">' +
-      '<h3>' + ICONOS_AVISO[tipo] + ' ' + a.fecha + '</h3>' +
+      '<h3><span class="icono-aviso">' + ICONOS_AVISO[tipo] + '</span>' + a.fecha + '</h3>' +
       '<p>' + a.texto + '</p></div>';
   }).join('');
 }
@@ -107,9 +125,13 @@ function iniciarMapa(datos) {
     attribution: '© OpenStreetMap'
   }).addTo(mapa);
 
-  const ruta = conCoords.map(e => [e.lat, e.lng]);
-  L.polyline(ruta, { color: '#9AA5B1', weight: 4, dashArray: '6 8' }).addTo(mapa);
+  // Traza del viaducto: sigue los puntos intermedios si existen
+  const trazado = datos.trazado && datos.trazado.length
+    ? datos.trazado
+    : conCoords.map(e => [e.lat, e.lng]);
+  L.polyline(trazado, { color: '#9AA5B1', weight: 4, dashArray: '6 8' }).addTo(mapa);
 
+  // Tramo activo en rojo, de estación a estación
   const activas = conCoords.filter(e => e.activa);
   if (activas.length > 1) {
     L.polyline(activas.map(e => [e.lat, e.lng]), { color: '#D7141A', weight: 6 }).addTo(mapa);
@@ -122,7 +144,7 @@ function iniciarMapa(datos) {
     }).addTo(mapa).bindPopup('<strong>' + e.nombre + '</strong>');
   });
 
-  mapa.fitBounds(ruta, { padding: [30, 30] });
+  mapa.fitBounds(trazado, { padding: [30, 30] });
 }
 
 // Calcula dónde debería estar el tren según la última salida programada
@@ -162,7 +184,7 @@ function actualizarTren(datos) {
   }
   if (!marcadorTren) {
     marcadorTren = L.marker(pos, {
-      icon: L.divIcon({ className: 'tren-icono', html: '🚆', iconSize: [34, 34], iconAnchor: [17, 17] })
+      icon: L.divIcon({ className: 'tren-icono', html: TREN_SVG, iconSize: [46, 26], iconAnchor: [23, 13] })
     }).addTo(mapa).bindPopup('Posición estimada según horario');
   } else {
     marcadorTren.setLatLng(pos);
