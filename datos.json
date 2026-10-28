@@ -24,9 +24,9 @@
       "nota": "",
       "direccion": "Frente al Jardín Botánico, Santiago del Estero (revisar)",
       "servicios_cercanos": ["Estadio Único Madre de Ciudades", "Jardín Botánico"],
-      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.7667,-64.2528",
-      "lat": -27.7667,
-      "lng": -64.2528
+      "mapa": "https://www.google.com/maps/search/?api=1&query=-27.767412530839934,-64.26945726270574",
+      "lat": -27.767412530839934,
+      "lng": -64.26945726270574
     },
     {
       "nombre": "Estación Nodo Tecnológico",
