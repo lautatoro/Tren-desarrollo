@@ -242,3 +242,32 @@ button.mapa { border: none; cursor: pointer; font-family: inherit; }
 .caja-mapa iframe { width: 100%; height: 240px; border: 0; display: block; }
 #mapa-canvas { height: 380px; border-radius: 20px; overflow: hidden; box-shadow: var(--sombra); }
 .tren-icono { font-size: 26px; line-height: 34px; text-align: center; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+
+#pantalla-carga {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: linear-gradient(135deg, #0057B8, #003B7A);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: opacity 0.5s ease;
+}
+#pantalla-carga.oculta { opacity: 0; pointer-events: none; }
+#pantalla-carga p { margin-top: 18px; font-size: 0.95rem; opacity: 0.9; }
+.carga-logo { width: 160px; animation: latido 1.6s ease-in-out infinite; }
+.carga-via { width: 200px; height: 4px; background: rgba(255,255,255,0.25); border-radius: 4px; position: relative; margin-top: 24px; overflow: visible; }
+.carga-tren { position: absolute; top: -14px; font-size: 22px; animation: viaje 1.6s linear infinite; }
+@keyframes latido {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes viaje {
+  from { left: -10px; }
+  to { left: 180px; }
+}
+
+.carga-tren { top: -20px; }
+.carga-tren svg { display: block; }
