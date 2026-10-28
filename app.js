@@ -179,20 +179,38 @@ function formatearFechaHora(iso) {
 
 // ---------- RENDER ----------
 
+const ETIQUETAS_AVISO = { novedad: 'Novedad', demora: 'Demora', corte: 'Corte' };
+const PRIORIDAD_AVISO = { corte: 0, demora: 1, novedad: 2 };
+
 function renderAvisos(avisos) {
   const contenedor = document.getElementById('lista-avisos');
+  const hoy = new Date().toISOString().slice(0, 10);
   let html = '';
+
   if (!avisos.length) {
     html = '<div class="tarjeta"><p>No hay avisos por ahora.</p></div>';
   } else {
-    const ordenados = [...avisos].sort((a, b) => b.fecha.localeCompare(a.fecha));
+    const ordenados = [...avisos].sort((a, b) => {
+      const pa = PRIORIDAD_AVISO[a.tipo] ?? 2;
+      const pb = PRIORIDAD_AVISO[b.tipo] ?? 2;
+      if (pa !== pb) return pa - pb;
+      return b.fecha.localeCompare(a.fecha);
+    });
+
     html = ordenados.map(a => {
-      const tipo = ICONOS_AVISO[a.tipo] ? a.tipo : 'novedad';
-      return '<div class="tarjeta aviso aviso-' + tipo + '">' +
-        '<h3><span class="icono-aviso">' + ICONOS_AVISO[tipo] + '</span>' + escapar(a.fecha) + '</h3>' +
-        '<p>' + escapar(a.texto) + '</p></div>';
+      const tipo = ETIQUETAS_AVISO[a.tipo] ? a.tipo : 'novedad';
+      const nuevo = a.fecha === hoy ? '<span class="etiqueta-nuevo">Nuevo</span>' : '';
+      return '<div class="aviso-publico aviso-' + tipo + '">' +
+        '<div class="aviso-cabecera">' +
+          '<span class="etiqueta-tipo-' + tipo + '">' + ETIQUETAS_AVISO[tipo] + '</span>' +
+          nuevo +
+        '</div>' +
+        '<p>' + escapar(a.texto) + '</p>' +
+        '<small>' + escapar(a.fecha) + '</small>' +
+      '</div>';
     }).join('');
   }
+
   const historial = leerHistorial();
   if (historial.length) {
     html += '<div class="tarjeta"><h3>Historial de avisos</h3>' +
