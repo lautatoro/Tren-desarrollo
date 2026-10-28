@@ -9,61 +9,116 @@
   <meta name="apple-mobile-web-app-title" content="Panel Chofer">
   <title>Panel del chofer</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="../logo.png">
-  <link rel="stylesheet" href="../estilos.css">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <style>
-    .panel { max-width: 480px; margin: 0 auto; padding: 16px; }
-    .campo { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #C5D3E3;
-             border-radius: 12px; font: inherit; background: #fff; color: #1C2B3A; }
-    .fila { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
-    .btn { border: none; border-radius: 999px; padding: 10px 18px; font: inherit; font-weight: 600;
-           color: #fff; background: linear-gradient(135deg, #0057B8, #003B7A); cursor: pointer; }
+    :root {
+      --azul: #0057B8; --azul-oscuro: #003B7A; --rojo: #D7141A;
+      --verde: #1DB954; --naranja: #F5A623; --gris: #9AA5B1;
+      --fondo: #EEF3FA; --texto: #1C2B3A; --blanco: #FFFFFF;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--fondo); color: var(--texto); min-height: 100vh;
+      max-width: 480px; margin: 0 auto;
+    }
+    header {
+      background: linear-gradient(135deg, var(--azul), var(--azul-oscuro));
+      color: #fff; padding: 22px 20px 26px; border-radius: 0 0 26px 26px;
+      box-shadow: 0 10px 28px rgba(0,59,122,.3); position: relative; overflow: hidden;
+    }
+    header::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 5px;
+      background: linear-gradient(90deg, var(--rojo), #ff5e62, var(--rojo));
+    }
+    header h1 { font-size: 1.35rem; font-weight: 800; }
+    header p { font-size: .88rem; opacity: .9; margin-top: 4px; }
+    main { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .tarjeta {
+      background: var(--blanco); border-radius: 18px; padding: 16px;
+      box-shadow: 0 6px 20px rgba(0,59,122,.10);
+    }
+    .tarjeta h2 { font-size: 1.05rem; color: var(--azul-oscuro); margin-bottom: 8px; }
+    .campo {
+      width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #C5D3E3;
+      border-radius: 12px; font: inherit; background: #fff; color: var(--texto);
+    }
+    label { display: block; margin-top: 10px; font-size: .92rem; font-weight: 600; }
+    .fila { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-top: 10px; }
+    .btn {
+      border: none; border-radius: 999px; padding: 10px 18px; font: inherit;
+      font-weight: 600; color: #fff; cursor: pointer;
+      background: linear-gradient(135deg, var(--azul), var(--azul-oscuro));
+    }
     .btn:disabled { opacity: .6; cursor: not-allowed; }
-    .btn.peligro { background: #D7141A; }
-    .btn.secundario { background: none; color: #003B7A; border: 1.5px solid #0057B8; }
-    .msg { margin-top: 10px; font-size: .92rem; min-height: 1.2em; color: #D7141A; }
-    .msg.ok { color: #1DB954; }
-    .aviso-item { border-left: 5px solid #0057B8; }
-    .aviso-item.demora { border-left-color: #F5A623; }
-    .aviso-item.corte { border-left-color: #D7141A; }
+    .btn.peligro { background: var(--rojo); }
+    .btn.pequeno { padding: 6px 12px; font-size: .82rem; }
+    .btn.secundario { background: none; color: var(--azul-oscuro); border: 1.5px solid var(--azul); }
+    .msg { margin-top: 10px; font-size: .9rem; min-height: 1.2em; color: var(--rojo); }
+    .msg.ok { color: var(--verde); }
+    .estado-caja {
+      display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+      border-radius: 14px; font-weight: 600; margin-bottom: 10px;
+    }
+    .estado-caja.ok { background: #E8F8EE; color: #137A3A; }
+    .estado-caja.detenido { background: #FDECEC; color: #B0101A; }
+    .punto { width: 12px; height: 12px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+    .aviso {
+      border-left: 5px solid var(--azul); border-radius: 14px; padding: 12px 14px;
+      background: #F7FAFF; margin-top: 10px;
+    }
+    .aviso.demora { border-left-color: var(--naranja); background: #FFF9EE; }
+    .aviso.corte { border-left-color: var(--rojo); background: #FFF3F3; }
+    .aviso-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .etiqueta-tipo {
+      font-size: .72rem; font-weight: 700; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 999px; color: #fff; background: var(--azul);
+    }
+    .aviso.demora .etiqueta-tipo { background: var(--naranja); }
+    .aviso.corte .etiqueta-tipo { background: var(--rojo); }
+    .aviso p { margin-top: 8px; line-height: 1.5; font-size: .95rem; }
+    .aviso small { display: block; margin-top: 6px; opacity: .65; font-size: .78rem; }
+    .contador { font-size: .8rem; opacity: .7; text-align: right; margin-top: 4px; }
+    .vacio { text-align: center; opacity: .6; padding: 14px 0; }
     .oculto { display: none !important; }
-    .contador { font-size: .8rem; opacity: .7; text-align: right; }
+    .salir { text-align: center; margin-top: 4px; }
   </style>
 </head>
 <body>
 <header>
   <h1>Panel del chofer</h1>
-  <p>Tren al Desarrollo</p>
+  <p>Tren al Desarrollo · Santiago del Estero – La Banda</p>
 </header>
 
-<main class="panel">
+<main>
 
-  <!-- Login -->
+  <!-- LOGIN -->
   <section id="vista-login" class="tarjeta oculto">
     <h2>Ingresá la clave del panel</h2>
-    <input id="clave" type="password" class="campo" placeholder="Clave" autocomplete="current-password" style="margin-top:10px;">
-    <div class="fila" style="margin-top:10px;">
+    <input id="clave" type="password" class="campo" placeholder="Clave" autocomplete="current-password">
+    <div class="fila">
       <button class="btn" onclick="entrar()">Entrar</button>
     </div>
     <p id="msg-login" class="msg" role="status"></p>
   </section>
 
-  <!-- Panel -->
-  <section id="vista-panel" class="oculto">
+  <!-- PANEL -->
+  <section id="vista-panel" class="oculto" style="display:flex;flex-direction:column;gap:14px;">
 
     <div class="tarjeta">
       <h2>Estado del servicio</h2>
-      <p id="estado-actual" style="margin:8px 0;">Cargando...</p>
+      <div id="estado-caja" class="estado-caja ok"><span class="punto"></span><span id="estado-actual">Cargando...</span></div>
       <div id="bloque-detener">
-        <label style="display:block; margin-top:10px;">Motivo
+        <label>Motivo
           <input id="motivo" class="campo" maxlength="200" placeholder="Ej: Corte por obras en Botánico">
         </label>
-        <div class="fila" style="margin-top:10px;">
+        <div class="fila">
           <button class="btn peligro" onclick="cambiarEstado(true)">Detener servicio</button>
         </div>
       </div>
       <div id="bloque-reanudar" class="oculto">
-        <div class="fila" style="margin-top:10px;">
+        <div class="fila">
           <button class="btn" onclick="cambiarEstado(false)">Reanudar servicio</button>
         </div>
       </div>
@@ -72,34 +127,34 @@
 
     <div class="tarjeta">
       <h2>Publicar aviso</h2>
-      <label style="display:block; margin-top:10px;">Tipo
+      <label>Tipo
         <select id="tipo" class="campo">
           <option value="novedad">Novedad</option>
           <option value="demora">Demora</option>
           <option value="corte">Corte</option>
         </select>
       </label>
-      <label style="display:block; margin-top:10px;">Aviso
+      <label>Aviso
         <textarea id="texto" class="campo" rows="3" maxlength="300" placeholder="Escribí el aviso para los pasajeros"
           oninput="document.getElementById('contador').textContent = this.value.length"></textarea>
       </label>
       <div class="contador"><span id="contador">0</span>/300</div>
-      <div class="fila" style="margin-top:6px;">
+      <div class="fila">
         <button id="btn-publicar" class="btn" onclick="publicar()">Publicar aviso</button>
       </div>
       <p id="msg-publicar" class="msg" role="status"></p>
     </div>
 
     <div class="tarjeta">
-      <div class="fila">
+      <div class="fila" style="margin-top:0">
         <h2>Avisos publicados</h2>
-        <button class="btn secundario" onclick="cargarAvisos()">Actualizar</button>
+        <button class="btn secundario pequeno" onclick="cargarAvisos()">Actualizar</button>
       </div>
-      <div id="lista-avisos" style="margin-top:12px;"></div>
+      <div id="lista-avisos"></div>
       <p id="msg-lista" class="msg" role="status"></p>
     </div>
 
-    <div class="tarjeta">
+    <div class="salir">
       <button class="btn secundario" onclick="cerrarSesion()">Salir</button>
     </div>
   </section>
@@ -111,6 +166,8 @@
 
   const escapar = s => String(s ?? '').replace(/[&<>"']/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  const ETIQUETAS = { novedad: 'Novedad', demora: 'Demora', corte: 'Corte' };
 
   function mostrarVista(id) {
     ['vista-login', 'vista-panel'].forEach(v =>
@@ -151,11 +208,11 @@
   async function cargarEstado() {
     try {
       const e = await api('/estado');
-      const txt = document.getElementById('estado-actual');
-      txt.innerHTML = e.activo
-        ? '<strong>Servicio DETENIDO</strong><br>Motivo: ' + escapar(e.motivo) +
-          '<br><small>Desde: ' + escapar(e.desde) + '</small>'
-        : '<strong>Servicio en funcionamiento</strong>';
+      const caja = document.getElementById('estado-caja');
+      caja.className = 'estado-caja ' + (e.activo ? 'detenido' : 'ok');
+      document.getElementById('estado-actual').innerHTML = e.activo
+        ? 'Servicio DETENIDO · ' + escapar(e.motivo) + '<br><small>Desde ' + escapar(e.desde) + '</small>'
+        : 'Servicio en funcionamiento';
       document.getElementById('bloque-detener').classList.toggle('oculto', e.activo);
       document.getElementById('bloque-reanudar').classList.toggle('oculto', !e.activo);
     } catch (err) {
@@ -185,13 +242,32 @@
     document.getElementById('msg-lista').textContent = '';
     try {
       const avisos = await api('/avisos');
-      lista.innerHTML = avisos.length ? avisos.map(a =>
-        `<div class="tarjeta aviso-item ${escapar(a.tipo)}">
-           <h3>${escapar(a.fecha)} · ${escapar(a.tipo)}</h3>
-           <p>${escapar(a.texto)}</p>
-         </div>`).join('') : '<p>No hay avisos publicados.</p>';
+      lista.innerHTML = avisos.length ? avisos.map(a => {
+        const tipo = ETIQUETAS[a.tipo] ? a.tipo : 'novedad';
+        return `<div class="aviso ${tipo}">
+          <div class="aviso-top">
+            <span class="etiqueta-tipo">${ETIQUETAS[tipo]}</span>
+            <button class="btn peligro pequeno" onclick="borrarAviso('${escapar(a.id)}')">Borrar</button>
+          </div>
+          <p>${escapar(a.texto)}</p>
+          <small>${escapar(a.fecha)}${a.autor ? ' · ' + escapar(a.autor) : ''}</small>
+        </div>`;
+      }).join('') : '<p class="vacio">No hay avisos publicados.</p>';
     } catch (e) {
       lista.innerHTML = '';
+      document.getElementById('msg-lista').textContent = e.message;
+    }
+  }
+
+  async function borrarAviso(id) {
+    if (!confirm('¿Borrar este aviso? No se puede deshacer.')) return;
+    try {
+      await api('/avisos/borrar', { method: 'POST', body: JSON.stringify({ id }) });
+      document.getElementById('msg-lista').className = 'msg ok';
+      document.getElementById('msg-lista').textContent = 'Aviso borrado';
+      cargarAvisos();
+    } catch (e) {
+      document.getElementById('msg-lista').className = 'msg';
       document.getElementById('msg-lista').textContent = e.message;
     }
   }
@@ -201,9 +277,10 @@
     const tipo = document.getElementById('tipo').value;
     const msg = document.getElementById('msg-publicar');
     const btn = document.getElementById('btn-publicar');
-    if (!texto) { msg.textContent = 'Escribí un aviso antes de publicar.'; return; }
+    if (!texto) { msg.className = 'msg'; msg.textContent = 'Escribí un aviso antes de publicar.'; return; }
 
     btn.disabled = true;
+    msg.className = 'msg';
     msg.textContent = 'Publicando...';
     try {
       await api('/avisos', { method: 'POST', body: JSON.stringify({ texto, tipo }) });
@@ -213,7 +290,6 @@
       msg.textContent = 'Aviso publicado';
       cargarAvisos();
     } catch (e) {
-      msg.className = 'msg';
       msg.textContent = e.message;
     } finally {
       btn.disabled = false;
