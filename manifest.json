@@ -1,9 +1,12 @@
 {
+  "id": "/Tren-desarrollo/",
   "name": "Tren al Desarrollo",
-  "short_name": "Tren al Desarrollo",
+  "short_name": "Tren Desarrollo",
+  "description": "Horarios, estaciones, avisos y mapa del Tren al Desarrollo, Santiago del Estero – La Banda.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#EEF3FA",
   "theme_color": "#0057B8",
   "icons": [
