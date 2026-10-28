@@ -277,3 +277,14 @@ button.mapa { border: none; cursor: pointer; font-family: inherit; }
 .fila-salida.actual { background: rgba(215,20,26,0.12); font-weight: 700; }
 .historial-item { font-size: 0.85rem; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08); }
 .fila-salida small { color: #555; font-size: 0.8rem; }
+/* Accesibilidad */
+.saltar { position: absolute; left: -9999px; top: 0; background: #fff; color: var(--azul-oscuro); padding: 8px 12px; z-index: 200; }
+.saltar:focus { left: 12px; top: 12px; }
+button:focus-visible, a:focus-visible { outline: 3px solid #FFB400; outline-offset: 2px; }
+nav button[aria-pressed="true"] { text-decoration: underline; }
+.tarjeta[hidden], .estado[hidden] { display: none; }
+[hidden] { display: none !important; }
+@media (prefers-contrast: more) {
+  .tarjeta, .estado { border: 2px solid var(--azul-oscuro); }
+  .etiqueta { background: var(--azul-oscuro); }
+}
