@@ -1,4 +1,4 @@
-// ⚠️ Reemplazá TU-USUARIO por tu usuario de GitHub
+// Dirección de los datos (ya configurada con tu usuario)
 const URL_DATOS = 'https://lautatoro.github.io/tren-desarrollo/datos.json';
 
 function mostrar(id, boton) {
@@ -14,7 +14,9 @@ function salidasDel(fecha, datos) {
   const desde = parseInt(bloque.desde);
   const hasta = parseInt(bloque.hasta);
   const salidas = [];
-  for (let h = desde; h <= hasta; h += datos.servicio.frecuencia_horas) salidas.push(h);
+  for (let m = desde * 60; m <= hasta * 60; m += datos.servicio.frecuencia_minutos) {
+    salidas.push(m / 60);
+  }
   return { salidas, bloque };
 }
 
@@ -29,20 +31,20 @@ function renderizar(datos) {
   estado.innerHTML = '<span class="punto"></span><strong>' +
     (abierto ? 'Servicio en horario' : 'Fuera de horario de servicio') + '</strong>';
 
-  const proxima = salidas.find(h => h > hora || (h === Math.floor(hora) && ahora.getMinutes() === 0));
+  const proxima = salidas.find(h => h > hora);
   document.getElementById('proxima-salida').textContent = proxima !== undefined
-    ? 'Hoy a las ' + String(proxima).padStart(2, '0') + ':00 hs'
+    ? 'Hoy a las ' + formatearHora(proxima) + ' hs'
     : 'Sin más salidas hoy.';
 
   document.getElementById('tramo').textContent = datos.tramo_activo.join(' ↔ ');
 
   const s = datos.servicio;
   document.getElementById('h-semana').innerHTML =
-    'De ' + s.lunes_a_viernes.desde + ' a ' + s.lunes_a_viernes.hasta + ' hs<br>Salidas cada ' + s.frecuencia_horas + ' hora';
+    'De ' + s.lunes_a_viernes.desde + ' a ' + s.lunes_a_viernes.hasta + ' hs<br>Salidas cada ' + s.frecuencia_minutos + ' minutos';
   document.getElementById('h-finde').innerHTML =
-    'De ' + s.fines_de_semana_y_feriados.desde + ' a ' + s.fines_de_semana_y_feriados.hasta + ' hs<br>Salidas cada ' + s.frecuencia_horas + ' hora';
+    'De ' + s.fines_de_semana_y_feriados.desde + ' a ' + s.fines_de_semana_y_feriados.hasta + ' hs<br>Salidas cada ' + s.frecuencia_minutos + ' minutos';
   document.getElementById('lista-salidas').innerHTML =
-    salidas.map(h => String(h).padStart(2, '0') + ':00 hs').join('<br>');
+    salidas.map(h => formatearHora(h) + ' hs').join('<br>');
 
   document.getElementById('lista-estaciones').innerHTML = datos.estaciones.map(e =>
     '<div class="tarjeta ' + (e.activa ? '' : 'inactiva') + '"><h3>' + e.nombre + '</h3>' +
@@ -53,6 +55,13 @@ function renderizar(datos) {
   document.getElementById('lista-avisos').innerHTML = datos.avisos.length
     ? datos.avisos.map(a => '<div class="tarjeta aviso"><h3>' + a.fecha + '</h3><p>' + a.texto + '</p></div>').join('')
     : '<div class="tarjeta"><p>No hay avisos por ahora.</p></div>';
+}
+
+// Convierte horas decimales (ej: 8.5) a formato "08:30"
+function formatearHora(h) {
+  const hh = Math.floor(h);
+  const mm = Math.round((h - hh) * 60);
+  return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
 }
 
 // Carga datos.json sin caché y actualiza cada minuto
