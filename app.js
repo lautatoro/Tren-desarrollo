@@ -186,7 +186,35 @@ function iniciarMapa(datos) {
   mapa.fitBounds(trazado, { padding: [30, 30] });
 }
 
-// Posición estimada: ida (Fórum → Banda) y vuelta (Banda → Fórum), con la misma duración
+// Distancia entre dos puntos [lat, lng] (aproximada, suficiente para la traza)
+function distancia(a, b) {
+  const dLat = b[0] - a[0];
+  const dLng = (b[1] - a[1]) * Math.cos(a[0] * Math.PI / 180);
+  return Math.sqrt(dLat * dLat + dLng * dLng);
+}
+
+// Devuelve el punto que está a una fracción f (0 a 1) del largo total de la traza
+function puntoEnTraza(traza, f) {
+  const tramos = [];
+  let total = 0;
+  for (let i = 0; i < traza.length - 1; i++) {
+    const d = distancia(traza[i], traza[i + 1]);
+    tramos.push(d);
+    total += d;
+  }
+  let objetivo = f * total;
+  for (let i = 0; i < tramos.length; i++) {
+    if (objetivo <= tramos[i] || i === tramos.length - 1) {
+      const k = tramos[i] === 0 ? 0 : Math.min(objetivo / tramos[i], 1);
+      const a = traza[i], b = traza[i + 1];
+      return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
+    }
+    objetivo -= tramos[i];
+  }
+  return traza[traza.length - 1];
+}
+
+// Posición estimada: ida (Fórum → Banda) y vuelta (Banda → Fórum), siguiendo el trazado
 function posicionEstimada(datos, ahora) {
   const { salidas } = salidasDel(ahora, datos);
   const minAhora = ahora.getHours() * 60 + ahora.getMinutes();
@@ -204,18 +232,16 @@ function posicionEstimada(datos, ahora) {
   const t = minAhora - ultimaSalida;
   if (t > duracion * 2) return null;
 
-  const ruta = datos.estaciones.filter(e => e.activa && e.lat != null && e.lng != null);
-  if (ruta.length < 2) return null;
+  const traza = datos.trazado && datos.trazado.length >= 2
+    ? datos.trazado
+    : datos.estaciones.filter(e => e.activa && e.lat != null).map(e => [e.lat, e.lng]);
+  if (traza.length < 2) return null;
 
   const ida = t <= duracion;
-  const fraccion = ida ? t / duracion : (t - duracion) / duracion;
-  const recorrido = ida ? ruta : [...ruta].reverse();
+  const f = ida ? t / duracion : (t - duracion) / duracion;
 
-  const pos = fraccion * (recorrido.length - 1);
-  const i = Math.min(Math.floor(pos), recorrido.length - 2);
-  const k = pos - i;
-  const a = recorrido[i], b = recorrido[i + 1];
-  return [a.lat + (b.lat - a.lat) * k, a.lng + (b.lng - a.lng) * k];
+  // Ida: recorre la traza de Fórum a La Banda. Vuelta: la recorre al revés.
+  return ida ? puntoEnTraza(traza, f) : puntoEnTraza([...traza].reverse(), f);
 }
 
 function actualizarTren(datos) {
