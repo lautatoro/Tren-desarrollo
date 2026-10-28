@@ -2,15 +2,14 @@
 const URL_DATOS = 'https://lautatoro.github.io/Tren-desarrollo/datos.json';
 
 const DURACION_REFERENCIA = 15; // minutos, si duracion_viaje_minutos es 0
+const MINUTOS_AVISO = 5; // avisar cuántos minutos antes de la salida
 
-// Íconos dibujados en SVG (sin emojis)
 const ICONOS_AVISO = {
   novedad: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#0057B8"/><rect x="11" y="10" width="2" height="8" rx="1" fill="#fff"/><circle cx="12" cy="7" r="1.3" fill="#fff"/></svg>',
   demora: '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="9" fill="none" stroke="#F5A623" stroke-width="2.5"/><path d="M12 8v5l3 2" stroke="#F5A623" stroke-width="2.2" fill="none" stroke-linecap="round"/><rect x="9" y="1" width="6" height="2.5" rx="1" fill="#F5A623"/></svg>',
   corte: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#D7141A"/><rect x="6" y="10.5" width="12" height="3" rx="1" fill="#fff"/></svg>'
 };
 
-// Trencito dibujado en SVG, visto de costado, mirando a la derecha
 const TREN_SVG = '<svg viewBox="0 0 60 34" xmlns="http://www.w3.org/2000/svg">' +
   '<path d="M4 22 Q4 8 18 8 L44 8 Q54 8 56 18 L56 24 Q56 27 53 27 L7 27 Q4 27 4 24 Z" fill="#FFFFFF" stroke="#0057B8" stroke-width="2"/>' +
   '<path d="M4 17 L56 17" stroke="#D7141A" stroke-width="3"/>' +
@@ -24,6 +23,8 @@ const TREN_SVG = '<svg viewBox="0 0 60 34" xmlns="http://www.w3.org/2000/svg">' 
 
 let mapa = null;
 let marcadorTren = null;
+let datosCargados = null;
+let ultimoAvisoEnviado = null;
 
 function mostrar(id, boton) {
   document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
@@ -71,6 +72,47 @@ function formatearHora(h) {
 function proximaHoraDecimal(d) {
   return d.getHours() + d.getMinutes() / 60;
 }
+
+// ---------- NOTIFICACIONES ----------
+
+function activarNotificaciones() {
+  const estadoNotif = document.getElementById('estado-notif');
+  if (!('Notification' in window)) {
+    estadoNotif.textContent = 'Tu navegador no soporta notificaciones.';
+    return;
+  }
+  Notification.requestPermission().then(permiso => {
+    if (permiso === 'granted') {
+      estadoNotif.textContent = 'Notificaciones activadas. Te avisamos antes de cada salida.';
+      document.getElementById('btn-notificar').textContent = 'Notificaciones activas';
+      new Notification('Tren al Desarrollo', { body: 'Listo, te avisamos antes de cada salida.', icon: 'logo.png' });
+    } else {
+      estadoNotif.textContent = 'No se activaron las notificaciones. Podés cambiarlo en la configuración del navegador.';
+    }
+  });
+}
+
+function revisarAvisos(datos, ahora) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const { salidas } = salidasDel(ahora, datos);
+  const minAhora = ahora.getHours() * 60 + ahora.getMinutes();
+  for (const h of salidas) {
+    const minSalida = h * 60;
+    const falta = minSalida - minAhora;
+    if (falta > 0 && falta <= MINUTOS_AVISO) {
+      const clave = ahora.toDateString() + '-' + h;
+      if (ultimoAvisoEnviado !== clave) {
+        ultimoAvisoEnviado = clave;
+        new Notification('Tren al Desarrollo', {
+          body: 'Sale el tren en ' + falta + ' minutos (' + formatearHora(h) + ' hs)',
+          icon: 'logo.png'
+        });
+      }
+    }
+  }
+}
+
+// ---------- RENDER ----------
 
 function renderAvisos(avisos) {
   const contenedor = document.getElementById('lista-avisos');
@@ -125,13 +167,11 @@ function iniciarMapa(datos) {
     attribution: '© OpenStreetMap'
   }).addTo(mapa);
 
-  // Traza del viaducto: sigue los puntos intermedios si existen
   const trazado = datos.trazado && datos.trazado.length
     ? datos.trazado
     : conCoords.map(e => [e.lat, e.lng]);
   L.polyline(trazado, { color: '#9AA5B1', weight: 4, dashArray: '6 8' }).addTo(mapa);
 
-  // Tramo activo en rojo, de estación a estación
   const activas = conCoords.filter(e => e.activa);
   if (activas.length > 1) {
     L.polyline(activas.map(e => [e.lat, e.lng]), { color: '#D7141A', weight: 6 }).addTo(mapa);
@@ -147,7 +187,6 @@ function iniciarMapa(datos) {
   mapa.fitBounds(trazado, { padding: [30, 30] });
 }
 
-// Calcula dónde debería estar el tren según la última salida programada
 function posicionEstimada(datos, ahora) {
   const { salidas } = salidasDel(ahora, datos);
   const minAhora = ahora.getHours() * 60 + ahora.getMinutes();
@@ -191,9 +230,7 @@ function actualizarTren(datos) {
   }
 }
 
-// ---------- RENDER ----------
-
-let datosCargados = null;
+// ---------- ACTUALIZACIÓN ----------
 
 function renderizar(datos) {
   const ahora = new Date();
@@ -235,12 +272,14 @@ function renderizar(datos) {
   renderEstaciones(datos.estaciones);
   renderAvisos(datos.avisos);
   actualizarTren(datos);
+  revisarAvisos(datos, ahora);
 }
 
 function actualizarCuenta() {
   if (datosCargados) renderizar(datosCargados);
 }
 
+// Mostrar la pantalla de carga hasta que lleguen los datos
 fetch(URL_DATOS + '?v=' + Date.now())
   .then(r => r.json())
   .then(datos => {
@@ -248,9 +287,21 @@ fetch(URL_DATOS + '?v=' + Date.now())
     iniciarMapa(datos);
     renderizar(datos);
     setInterval(actualizarCuenta, 1000);
+    ocultarCarga();
   })
   .catch(() => {
     const estado = document.getElementById('estado-servicio');
     estado.className = 'estado cerrado';
     estado.textContent = 'No se pudieron cargar los datos. Revisá tu conexión.';
+    ocultarCarga();
   });
+
+function ocultarCarga() {
+  const pantalla = document.getElementById('pantalla-carga');
+  pantalla.classList.add('oculta');
+  setTimeout(() => pantalla.remove(), 600);
+}
+
+if (Notification && Notification.permission === 'granted') {
+  document.getElementById('btn-notificar').textContent = 'Notificaciones activas';
+}
