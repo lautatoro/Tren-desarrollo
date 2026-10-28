@@ -64,6 +64,20 @@ function renderAvisos(avisos) {
   }).join('');
 }
 
+function renderEstaciones(estaciones) {
+  const contenedor = document.getElementById('lista-estaciones');
+  contenedor.innerHTML = estaciones.map(e => {
+    const cercanos = (e.servicios_cercanos || []).map(s => '<span class="etiqueta gris">' + s + '</span>').join(' ');
+    return '<div class="tarjeta ' + (e.activa ? '' : 'inactiva') + '">' +
+      '<h3>' + e.nombre + '</h3>' +
+      '<p>' + (e.activa ? 'Tramo activo' : 'Sin servicio') + '</p>' +
+      '<p style="margin-top:6px;">📍 ' + e.direccion + '</p>' +
+      (cercanos ? '<p style="margin-top:6px;">Cerca: ' + cercanos + '</p>' : '') +
+      '<a class="mapa" href="' + e.mapa + '" target="_blank" rel="noopener">Ver en el mapa</a>' +
+      '</div>';
+  }).join('');
+}
+
 let datosCargados = null;
 
 function renderizar(datos) {
@@ -103,12 +117,7 @@ function renderizar(datos) {
   document.getElementById('lista-salidas').innerHTML =
     salidas.map(h => formatearHora(h) + ' hs').join('<br>');
 
-  document.getElementById('lista-estaciones').innerHTML = datos.estaciones.map(e =>
-    '<div class="tarjeta ' + (e.activa ? '' : 'inactiva') + '"><h3>' + e.nombre + '</h3>' +
-    '<p>' + (e.nota || (e.activa ? 'Tramo activo' : 'Sin servicio')) + '</p>' +
-    '<span class="etiqueta ' + (e.activa ? '' : 'gris') + '">' + (e.activa ? 'Activa' : 'Sin servicio') + '</span></div>'
-  ).join('');
-
+  renderEstaciones(datos.estaciones);
   renderAvisos(datos.avisos);
 }
 
