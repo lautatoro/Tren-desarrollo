@@ -1,8 +1,8 @@
 {
   "servicio_detenido": {
-    "activo": true,
-    "motivo": "MANTENIMIENTO  URGENTE",
-    "desde": "2026-10-28 19:16"
+    "activo": false,
+    "motivo": "",
+    "desde": ""
   },
   "ultima_actualizacion": "2026-10-28",
   "servicio": {
