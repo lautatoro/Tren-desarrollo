@@ -433,16 +433,26 @@ function ocultarCarga() {
   setTimeout(() => pantalla.remove(), 600);
 }
 
-fetch(URL_DATOS + '?v=' + Date.now())
-  .then(r => r.json())
-  .then(datos => {
-    datosCargados = datos;
-    iniciarMapa(datos);
-    renderCompleto(datos);
-    actualizarRapido(datos);
+function cargarDatos() {
+  return fetch(URL_DATOS + '?v=' + Date.now(), { cache: 'no-store' })
+    .then(r => r.json())
+    .then(datos => {
+      const primeraVez = !datosCargados;
+      datosCargados = datos;
+      if (primeraVez) {
+        iniciarMapa(datos);
+        ocultarCarga();
+      }
+      renderCompleto(datos);
+      actualizarRapido(datos);
+      return datos;
+    });
+}
+
+cargarDatos()
+  .then(() => {
     setInterval(tick, 1000);
-    setInterval(() => renderCompleto(datosCargados), 60000);
-    ocultarCarga();
+    setInterval(() => cargarDatos().catch(() => {}), 30000);
   })
   .catch(() => {
     const estado = document.getElementById('estado-servicio');
