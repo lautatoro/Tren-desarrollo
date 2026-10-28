@@ -2,7 +2,8 @@
 const URL_DATOS = 'https://lautatoro.github.io/Tren-desarrollo/datos.json';
 
 const DURACION_REFERENCIA = 15; // minutos por tramo, si duracion_viaje_minutos es 0
-const MINUTOS_AVISO = 5; // avisar cuántos minutos antes de la salida
+const ESPERA_REFERENCIA = 2;    // minutos de espera en cada cabecera, si no está en datos.json
+const MINUTOS_AVISO = 5;        // avisar cuántos minutos antes de la salida
 
 const ICONOS_AVISO = {
   novedad: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#0057B8"/><rect x="11" y="10" width="2" height="8" rx="1" fill="#fff"/><circle cx="12" cy="7" r="1.3" fill="#fff"/></svg>',
@@ -186,14 +187,14 @@ function iniciarMapa(datos) {
   mapa.fitBounds(trazado, { padding: [30, 30] });
 }
 
-// Distancia entre dos puntos [lat, lng] (aproximada, suficiente para la traza)
+// Distancia aproximada entre dos puntos [lat, lng]
 function distancia(a, b) {
   const dLat = b[0] - a[0];
   const dLng = (b[1] - a[1]) * Math.cos(a[0] * Math.PI / 180);
   return Math.sqrt(dLat * dLat + dLng * dLng);
 }
 
-// Devuelve el punto que está a una fracción f (0 a 1) del largo total de la traza
+// Punto a una fracción f (0 a 1) del largo total de la traza
 function puntoEnTraza(traza, f) {
   const tramos = [];
   let total = 0;
@@ -202,7 +203,7 @@ function puntoEnTraza(traza, f) {
     tramos.push(d);
     total += d;
   }
-  let objetivo = f * total;
+  let objetivo = Math.min(Math.max(f, 0), 1) * total;
   for (let i = 0; i < tramos.length; i++) {
     if (objetivo <= tramos[i] || i === tramos.length - 1) {
       const k = tramos[i] === 0 ? 0 : Math.min(objetivo / tramos[i], 1);
@@ -214,34 +215,36 @@ function puntoEnTraza(traza, f) {
   return traza[traza.length - 1];
 }
 
-// Posición estimada: ida (Fórum → Banda) y vuelta (Banda → Fórum), siguiendo el trazado
+// Posición estimada dentro del horario de servicio.
+// Ciclo: ida (D) → espera en La Banda (E) → vuelta (D) → espera en Fórum (E). Se repite todo el servicio.
 function posicionEstimada(datos, ahora) {
-  const { salidas } = salidasDel(ahora, datos);
+  const { bloque } = salidasDel(ahora, datos);
+  const inicio = parseInt(bloque.desde) * 60;
+  const fin = parseInt(bloque.hasta) * 60;
   const minAhora = ahora.getHours() * 60 + ahora.getMinutes();
+  if (minAhora < inicio || minAhora >= fin) return null;
 
-  let ultimaSalida = null;
-  for (const h of salidas) {
-    if (h * 60 <= minAhora) ultimaSalida = h * 60;
-  }
-  if (ultimaSalida === null) return null;
-
-  const duracion = datos.servicio.duracion_viaje_minutos > 0
+  const D = datos.servicio.duracion_viaje_minutos > 0
     ? datos.servicio.duracion_viaje_minutos
     : DURACION_REFERENCIA;
-
-  const t = minAhora - ultimaSalida;
-  if (t > duracion * 2) return null;
+  const E = datos.servicio.espera_cabecera_minutos != null
+    ? datos.servicio.espera_cabecera_minutos
+    : ESPERA_REFERENCIA;
+  const C = 2 * D + 2 * E;
 
   const traza = datos.trazado && datos.trazado.length >= 2
     ? datos.trazado
     : datos.estaciones.filter(e => e.activa && e.lat != null).map(e => [e.lat, e.lng]);
   if (traza.length < 2) return null;
 
-  const ida = t <= duracion;
-  const f = ida ? t / duracion : (t - duracion) / duracion;
+  const fase = (minAhora - inicio) % C;
 
-  // Ida: recorre la traza de Fórum a La Banda. Vuelta: la recorre al revés.
-  return ida ? puntoEnTraza(traza, f) : puntoEnTraza([...traza].reverse(), f);
+  if (fase <= D) return puntoEnTraza(traza, fase / D);                 // ida
+  if (fase <= D + E) return traza[traza.length - 1];                   // espera en La Banda
+  if (fase <= 2 * D + E) {                                             // vuelta
+    return puntoEnTraza([...traza].reverse(), (fase - D - E) / D);
+  }
+  return traza[0];                                                     // espera en Fórum
 }
 
 function actualizarTren(datos) {
