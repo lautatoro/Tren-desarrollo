@@ -288,3 +288,41 @@ nav button[aria-pressed="true"] { text-decoration: underline; }
   .tarjeta, .estado { border: 2px solid var(--azul-oscuro); }
   .etiqueta { background: var(--azul-oscuro); }
 }
+/* ----- Avisos públicos con color por tipo ----- */
+.aviso-publico {
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border-left: 6px solid var(--azul);
+  background: #F3F7FD;
+  box-shadow: var(--sombra);
+}
+.aviso-publico.aviso-demora { border-left-color: #F5A623; background: #FFF7E8; }
+.aviso-publico.aviso-corte { border-left-color: #D7141A; background: #FFF0F0; }
+
+.aviso-publico p { margin: 6px 0; line-height: 1.5; font-size: .95rem; color: var(--texto); }
+.aviso-publico small { opacity: .65; font-size: .78rem; }
+
+.aviso-cabecera { display: flex; align-items: center; gap: 8px; }
+
+.etiqueta-tipo-novedad,
+.etiqueta-tipo-demora,
+.etiqueta-tipo-corte {
+  display: inline-block; font-size: .72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .4px;
+  padding: 4px 10px; border-radius: 999px; color: #fff;
+}
+.etiqueta-tipo-novedad { background: #0057B8; }
+.etiqueta-tipo-demora { background: #F5A623; color: #3a2600; }
+.etiqueta-tipo-corte { background: #D7141A; }
+
+.etiqueta-nuevo {
+  font-size: .68rem; font-weight: 700; padding: 3px 8px;
+  border-radius: 999px; background: #1DB954; color: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  .aviso-publico { background: #16243A; }
+  .aviso-publico.aviso-demora { background: #3A2C12; }
+  .aviso-publico.aviso-corte { background: #3A1616; }
+}
