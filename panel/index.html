@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel del chofer</title>
+<link rel="stylesheet" href="../estilos.css">
+</head>
+<body>
+<header><h1>Panel del chofer</h1></header>
+<main>
+  <div class="tarjeta">
+    <label>Usuario<br><input id="usuario" style="width:100%;padding:10px;"></label>
+    <label>Contraseña<br><input id="clave" type="password" style="width:100%;padding:10px;"></label>
+  </div>
+  <div class="tarjeta">
+    <label>Tipo<br>
+      <select id="tipo" style="width:100%;padding:10px;">
+        <option value="novedad">Novedad</option>
+        <option value="demora">Demora</option>
+        <option value="corte">Corte</option>
+      </select>
+    </label>
+    <label style="display:block;margin-top:10px;">Aviso<br>
+      <textarea id="texto" rows="3" style="width:100%;padding:10px;"></textarea>
+    </label>
+    <button class="mapa" onclick="publicar()" style="margin-top:10px;">Publicar aviso</button>
+    <p id="resultado" style="margin-top:10px;"></p>
+  </div>
+</main>
+<script>
+async function publicar() {
+  const r = await fetch('/.netlify/functions/cambiar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      usuario: document.getElementById('usuario').value,
+      clave: document.getElementById('clave').value,
+      tipo: document.getElementById('tipo').value,
+      texto: document.getElementById('texto').value
+    })
+  });
+  document.getElementById('resultado').textContent = await r.text();
+}
+</script>
+</body>
+</html>
