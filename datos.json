@@ -1,25 +1,70 @@
 {
-  "servicio_detenido": { "activo": false, "motivo": "", "desde": "" },
+  "servicio_detenido": {
+    "activo": true,
+    "motivo": "MANTENIMIENTO  URGENTE",
+    "desde": "2026-10-28 19:16"
+  },
   "ultima_actualizacion": "2026-10-28",
   "servicio": {
-    "lunes_a_viernes": { "desde": "08:00", "hasta": "21:00" },
-    "fines_de_semana_y_feriados": { "desde": "15:00", "hasta": "21:00" },
+    "lunes_a_viernes": {
+      "desde": "08:00",
+      "hasta": "21:00"
+    },
+    "fines_de_semana_y_feriados": {
+      "desde": "15:00",
+      "hasta": "21:00"
+    },
     "frecuencia_minutos": 60,
     "duracion_viaje_minutos": 0,
     "espera_cabecera_minutos": 2
   },
-  "tramo_activo": ["Fórum", "Botánico", "Nodo Tecnológico", "Banda Centro"],
+  "tramo_activo": [
+    "Fórum",
+    "Botánico",
+    "Nodo Tecnológico",
+    "Banda Centro"
+  ],
   "trazado": [
-    [-27.77966, -64.26312],
-    [-27.76762, -64.26967],
-    [-27.76400, -64.26500],
-    [-27.76000, -64.26200],
-    [-27.75724, -64.26133],
-    [-27.75200, -64.25800],
-    [-27.74600, -64.25300],
-    [-27.74000, -64.24800],
-    [-27.73600, -64.24400],
-    [-27.73252, -64.24038]
+    [
+      -27.77966,
+      -64.26312
+    ],
+    [
+      -27.76762,
+      -64.26967
+    ],
+    [
+      -27.764,
+      -64.265
+    ],
+    [
+      -27.76,
+      -64.262
+    ],
+    [
+      -27.75724,
+      -64.26133
+    ],
+    [
+      -27.752,
+      -64.258
+    ],
+    [
+      -27.746,
+      -64.253
+    ],
+    [
+      -27.74,
+      -64.248
+    ],
+    [
+      -27.736,
+      -64.244
+    ],
+    [
+      -27.73252,
+      -64.24038
+    ]
   ],
   "estaciones": [
     {
@@ -27,7 +72,10 @@
       "activa": true,
       "nota": "",
       "direccion": "Av. Roca y Perú, Santiago del Estero",
-      "servicios_cercanos": ["Centro de Convenciones Fórum", "Terminal de Ómnibus"],
+      "servicios_cercanos": [
+        "Centro de Convenciones Fórum",
+        "Terminal de Ómnibus"
+      ],
       "mapa": "https://www.google.com/maps/search/?api=1&query=-27.7796560685231,-64.26311693533795",
       "lat": -27.7796560685231,
       "lng": -64.26311693533795
@@ -37,7 +85,10 @@
       "activa": true,
       "nota": "",
       "direccion": "Frente al Jardín Botánico, Santiago del Estero",
-      "servicios_cercanos": ["Estadio Único Madre de Ciudades", "Jardín Botánico"],
+      "servicios_cercanos": [
+        "Estadio Único Madre de Ciudades",
+        "Jardín Botánico"
+      ],
       "mapa": "https://www.google.com/maps/search/?api=1&query=-27.76762137313474,-64.26966974616168",
       "lat": -27.76762137313474,
       "lng": -64.26966974616168
@@ -47,7 +98,9 @@
       "activa": true,
       "nota": "",
       "direccion": "Nodo Tecnológico, La Banda",
-      "servicios_cercanos": ["Nodo Tecnológico"],
+      "servicios_cercanos": [
+        "Nodo Tecnológico"
+      ],
       "mapa": "https://www.google.com/maps/search/?api=1&query=-27.757243580824536,-64.26132961673615",
       "lat": -27.757243580824536,
       "lng": -64.26132961673615
@@ -57,13 +110,19 @@
       "activa": true,
       "nota": "",
       "direccion": "La Banda, Santiago del Estero",
-      "servicios_cercanos": ["Estación Banda (Ferrocarril Mitre)"],
+      "servicios_cercanos": [
+        "Estación Banda (Ferrocarril Mitre)"
+      ],
       "mapa": "https://www.google.com/maps/search/?api=1&query=-27.732518745318313,-64.2403828739497",
       "lat": -27.732518745318313,
       "lng": -64.2403828739497
     }
   ],
   "avisos": [
-    { "fecha": "2026-10-28", "tipo": "novedad", "texto": "Servicio habilitado hasta Estación Fórum. Información de referencia, verificar con el servicio oficial." }
+    {
+      "fecha": "2026-10-28",
+      "tipo": "novedad",
+      "texto": "Servicio habilitado hasta Estación Fórum. Información de referencia, verificar con el servicio oficial."
+    }
   ]
 }
