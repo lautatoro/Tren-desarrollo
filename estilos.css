@@ -276,3 +276,4 @@ button.mapa { border: none; cursor: pointer; font-family: inherit; }
 .fila-salida { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 10px; margin-bottom: 6px; background: rgba(0,87,184,0.06); }
 .fila-salida.actual { background: rgba(215,20,26,0.12); font-weight: 700; }
 .historial-item { font-size: 0.85rem; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08); }
+.fila-salida small { color: #555; font-size: 0.8rem; }
