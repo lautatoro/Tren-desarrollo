@@ -1,8 +1,8 @@
 {
   "servicio_detenido": {
-    "activo": false,
-    "motivo": "",
-    "desde": ""
+    "activo": true,
+    "motivo": "Problemas Tecnicos",
+    "desde": "2026-10-28 20:53"
   },
   "ultima_actualizacion": "2026-10-28",
   "servicio": {
