@@ -115,6 +115,13 @@
   ],
   "avisos": [
     {
+      "id": "mvshhmyea9tcq",
+      "fecha": "2026-10-28",
+      "tipo": "novedad",
+      "texto": "Prueba",
+      "autor": "chofer"
+    },
+    {
       "fecha": "2026-10-28",
       "tipo": "novedad",
       "texto": "Servicio habilitado hasta Estación Fórum. Información de referencia, verificar con el servicio oficial."
