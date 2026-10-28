@@ -4,7 +4,8 @@
     "lunes_a_viernes": { "desde": "08:00", "hasta": "21:00" },
     "fines_de_semana_y_feriados": { "desde": "15:00", "hasta": "21:00" },
     "frecuencia_minutos": 60,
-    "duracion_viaje_minutos": 0
+    "duracion_viaje_minutos": 0,
+    "espera_cabecera_minutos": 2
   },
   "tramo_activo": ["Fórum", "Botánico", "Nodo Tecnológico", "Banda Centro"],
   "trazado": [
