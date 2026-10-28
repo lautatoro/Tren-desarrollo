@@ -20,6 +20,35 @@ function salidasDel(fecha, datos) {
   return { salidas, bloque };
 }
 
+function proximaSalidaDate(ahora, salidas) {
+  for (const h of salidas) {
+    const d = new Date(ahora);
+    d.setHours(Math.floor(h), Math.round((h - Math.floor(h)) * 60), 0, 0);
+    if (d > ahora) return d;
+  }
+  return null;
+}
+
+function formatearCuenta(ms) {
+  const totalMin = Math.ceil(ms / 60000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h > 0) return h + ' h ' + String(m).padStart(2, '0') + ' min';
+  return m + ' min';
+}
+
+function formatearHora(h) {
+  const hh = Math.floor(h);
+  const mm = Math.round((h - hh) * 60);
+  return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+}
+
+function proximaHoraDecimal(d) {
+  return d.getHours() + d.getMinutes() / 60;
+}
+
+let datosCargados = null;
+
 function renderizar(datos) {
   const ahora = new Date();
   const { salidas, bloque } = salidasDel(ahora, datos);
@@ -31,10 +60,21 @@ function renderizar(datos) {
   estado.innerHTML = '<span class="punto"></span><strong>' +
     (abierto ? 'Servicio en horario' : 'Fuera de horario de servicio') + '</strong>';
 
-  const proxima = salidas.find(h => h > hora);
-  document.getElementById('proxima-salida').textContent = proxima !== undefined
-    ? 'Hoy a las ' + formatearHora(proxima) + ' hs'
-    : 'Sin más salidas hoy.';
+  const proxima = proximaSalidaDate(ahora, salidas);
+  const pProx = document.getElementById('proxima-salida');
+  const pCuenta = document.getElementById('cuenta-regresiva');
+  if (proxima) {
+    pProx.textContent = 'Hoy a las ' + formatearHora(proximaHoraDecimal(proxima));
+    pCuenta.textContent = 'Faltan ' + formatearCuenta(proxima - ahora);
+  } else {
+    pProx.textContent = 'Sin más salidas hoy.';
+    pCuenta.textContent = '';
+  }
+
+  const dur = datos.servicio.duracion_viaje_minutos;
+  document.getElementById('duracion').textContent = dur && dur > 0
+    ? 'Duración estimada del viaje: ' + dur + ' minutos'
+    : 'Duración del viaje: pendiente de confirmar';
 
   document.getElementById('tramo').textContent = datos.tramo_activo.join(' ↔ ');
 
@@ -57,19 +97,17 @@ function renderizar(datos) {
     : '<div class="tarjeta"><p>No hay avisos por ahora.</p></div>';
 }
 
-// Convierte horas decimales (ej: 8.5) a formato "08:30"
-function formatearHora(h) {
-  const hh = Math.floor(h);
-  const mm = Math.round((h - hh) * 60);
-  return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+// Actualiza la pantalla cada segundo (cuenta regresiva) sin pedir datos de nuevo
+function actualizarCuenta() {
+  if (datosCargados) renderizar(datosCargados);
 }
 
-// Carga datos.json sin caché y actualiza cada minuto
 fetch(URL_DATOS + '?v=' + Date.now())
   .then(r => r.json())
   .then(datos => {
+    datosCargados = datos;
     renderizar(datos);
-    setInterval(() => renderizar(datos), 60000);
+    setInterval(actualizarCuenta, 1000);
   })
   .catch(() => {
     const estado = document.getElementById('estado-servicio');
