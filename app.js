@@ -4,14 +4,18 @@ const URL_APP = 'https://lautatoro.github.io/Tren-desarrollo/';
 
 const DURACION_REFERENCIA = 15;
 const ESPERA_REFERENCIA = 2;
-const MINUTOS_AVISO = 5;
 const CLAVE_HISTORIAL = 'tren-historial-avisos';
+const CLAVE_VISTOS = 'tren-avisos-vistos';
+const CLAVE_ESTADO_DETENIDO = 'tren-estado-detenido';
 
 const ICONOS_AVISO = {
   novedad: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#0057B8"/><rect x="11" y="10" width="2" height="8" rx="1" fill="#fff"/><circle cx="12" cy="7" r="1.3" fill="#fff"/></svg>',
   demora: '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="9" fill="none" stroke="#F5A623" stroke-width="2.5"/><path d="M12 8v5l3 2" stroke="#F5A623" stroke-width="2.2" fill="none" stroke-linecap="round"/><rect x="9" y="1" width="6" height="2.5" rx="1" fill="#F5A623"/></svg>',
   corte: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#D7141A"/><rect x="6" y="10.5" width="12" height="3" rx="1" fill="#fff"/></svg>'
 };
+
+const ETIQUETAS_AVISO = { novedad: 'Novedad', demora: 'Demora', corte: 'Corte' };
+const PRIORIDAD_AVISO = { corte: 0, demora: 1, novedad: 2 };
 
 const TREN_SVG = '<svg viewBox="0 0 60 34" xmlns="http://www.w3.org/2000/svg">' +
   '<path d="M4 22 Q4 8 18 8 L44 8 Q54 8 56 18 L56 24 Q56 27 53 27 L7 27 Q4 27 4 24 Z" fill="#FFFFFF" stroke="#0057B8" stroke-width="2"/>' +
@@ -27,7 +31,6 @@ const TREN_SVG = '<svg viewBox="0 0 60 34" xmlns="http://www.w3.org/2000/svg">' 
 let mapa = null;
 let marcadorTren = null;
 let datosCargados = null;
-let ultimoAvisoEnviado = null;
 
 // Evita inyección de HTML al mostrar textos que vienen de datos.json
 function escapar(s) {
@@ -42,6 +45,8 @@ function mostrar(id, boton) {
   boton.classList.add('activo');
   if (id === 'mapa' && mapa) setTimeout(() => mapa.invalidateSize(), 100);
 }
+
+// ---------- HORARIOS ----------
 
 function salidasDel(fecha, datos) {
   const finde = fecha.getDay() === 0 || fecha.getDay() === 6;
@@ -88,8 +93,6 @@ function proximaHoraDecimal(d) {
   return d.getHours() + d.getMinutes() / 60;
 }
 
-// ---------- CÁLCULO DEL CICLO ----------
-
 function calcularCiclo(datos) {
   const D = datos.servicio.duracion_viaje_minutos > 0 ? datos.servicio.duracion_viaje_minutos : DURACION_REFERENCIA;
   const E = datos.servicio.espera_cabecera_minutos != null ? datos.servicio.espera_cabecera_minutos : ESPERA_REFERENCIA;
@@ -106,8 +109,6 @@ function faseTren(datos, ahora) {
   const { C } = calcularCiclo(datos);
   return (minAhora - inicio) % C;
 }
-
-// ---------- SERVICIO DETENIDO ----------
 
 function servicioDetenido(datos) {
   return !!(datos.servicio_detenido && datos.servicio_detenido.activo);
@@ -130,32 +131,81 @@ function activarNotificaciones() {
   }
   Notification.requestPermission().then(permiso => {
     if (permiso === 'granted') {
-      estadoNotif.textContent = 'Notificaciones activadas. Te avisamos antes de cada salida.';
+      estadoNotif.textContent = 'Notificaciones activadas. Te avisamos de avisos nuevos, cortes y salidas.';
       document.getElementById('btn-notificar').textContent = 'Notificaciones activas';
-      new Notification('Tren al Desarrollo', { body: 'Listo, te avisamos antes de cada salida.', icon: 'logo.png' });
+      new Notification('Tren al Desarrollo', { body: 'Listo, te avisamos de novedades.', icon: 'logo.png' });
     } else {
       estadoNotif.textContent = 'No se activaron las notificaciones. Podés cambiarlo en la configuración del navegador.';
     }
   });
 }
 
-function revisarAvisos(datos, ahora) {
+function avisarPasajero(titulo, texto, urgente) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  new Notification(titulo, {
+    body: texto,
+    icon: 'logo.png',
+    tag: urgente ? 'tren-urgente' : 'tren-aviso',
+    requireInteraction: !!urgente
+  });
+}
+
+function leerVistos() {
+  try { return JSON.parse(localStorage.getItem(CLAVE_VISTOS)) || null; }
+  catch (e) { return null; }
+}
+
+function guardarVistos(ids) {
+  try { localStorage.setItem(CLAVE_VISTOS, JSON.stringify(ids.slice(0, 100))); }
+  catch (e) { /* almacenamiento lleno o bloqueado */ }
+}
+
+// Compara con la última lectura y avisa solo de lo nuevo
+function revisarNovedades(datos) {
+  const avisos = datos.avisos || [];
+  const idsActuales = avisos.map(a => a.id).filter(Boolean);
+  const vistos = leerVistos();
+
+  if (vistos === null) {
+    // Primera vez: guardamos la base sin notificar
+    guardarVistos(idsActuales);
+  } else {
+    const nuevos = avisos.filter(a => a.id && !vistos.includes(a.id));
+    nuevos.forEach(a => {
+      const esCorte = a.tipo === 'corte';
+      avisarPasajero(esCorte ? 'Corte del servicio' : 'Nuevo aviso del tren', a.texto, esCorte);
+    });
+    if (nuevos.length) guardarVistos([...idsActuales, ...vistos]);
+  }
+
+  const detenido = servicioDetenido(datos);
+  const estadoAnterior = localStorage.getItem(CLAVE_ESTADO_DETENIDO);
+  const estadoActual = detenido ? 'si' : 'no';
+  if (estadoAnterior !== null && estadoAnterior !== estadoActual && detenido) {
+    avisarPasajero('Servicio detenido', datos.servicio_detenido.motivo, true);
+  }
+  localStorage.setItem(CLAVE_ESTADO_DETENIDO, estadoActual);
+}
+
+// Aviso de salida próxima (5 minutos antes)
+function revisarSalidas(datos, ahora) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
   if (servicioDetenido(datos)) return;
   const { salidas } = salidasDel(ahora, datos);
   const minAhora = ahora.getHours() * 60 + ahora.getMinutes();
+  const hoy = ahora.toDateString();
+  const yaAvisadas = JSON.parse(localStorage.getItem('tren-salidas-avisadas') || '{}');
   for (const h of salidas) {
     const falta = h * 60 - minAhora;
-    if (falta > 0 && falta <= MINUTOS_AVISO) {
-      const clave = ahora.toDateString() + '-' + h;
-      if (ultimoAvisoEnviado !== clave) {
-        ultimoAvisoEnviado = clave;
-        const texto = 'Sale el tren desde Fórum en ' + falta + ' minutos (' + formatearHora(h) + ' hs)';
-        new Notification('Tren al Desarrollo', { body: texto, icon: 'logo.png' });
-        guardarEnHistorial(texto, ahora);
-      }
+    const clave = hoy + '-' + h;
+    if (falta > 0 && falta <= 5 && !yaAvisadas[clave]) {
+      yaAvisadas[clave] = true;
+      const texto = 'Sale el tren desde Fórum en ' + falta + ' minutos (' + formatearHora(h) + ' hs)';
+      new Notification('Tren al Desarrollo', { body: texto, icon: 'logo.png' });
+      guardarEnHistorial(texto, ahora);
     }
   }
+  localStorage.setItem('tren-salidas-avisadas', JSON.stringify(yaAvisadas));
 }
 
 // ---------- HISTORIAL ----------
@@ -178,9 +228,6 @@ function formatearFechaHora(iso) {
 }
 
 // ---------- RENDER ----------
-
-const ETIQUETAS_AVISO = { novedad: 'Novedad', demora: 'Demora', corte: 'Corte' };
-const PRIORIDAD_AVISO = { corte: 0, demora: 1, novedad: 2 };
 
 function renderAvisos(avisos) {
   const contenedor = document.getElementById('lista-avisos');
@@ -246,7 +293,6 @@ function renderEstaciones(estaciones) {
   }).join('');
 }
 
-// Horarios del día con hora estimada de llegada a La Banda y regreso a Fórum
 function renderSalidasHoy(datos, salidas, ahora) {
   const contenedor = document.getElementById('lista-salidas');
   const fase = faseTren(datos, ahora);
@@ -344,7 +390,6 @@ function posicionEstimada(datos, ahora) {
 
 function actualizarTren(datos) {
   if (!mapa) return;
-  // Con servicio detenido, el tren no se muestra
   const pos = servicioDetenido(datos) ? null : posicionEstimada(datos, new Date());
   if (!pos) {
     if (marcadorTren) { marcadorTren.remove(); marcadorTren = null; }
@@ -367,11 +412,12 @@ function actualizarRapido(datos) {
   const { salidas, bloque } = salidasDel(ahora, datos);
   const hora = ahora.getHours() + ahora.getMinutes() / 60;
   const abierto = hora >= parseInt(bloque.desde) && hora < parseInt(bloque.hasta);
+  const detenido = servicioDetenido(datos);
 
   const estado = document.getElementById('estado-servicio');
   let clase, texto, detalle = '';
 
-  if (servicioDetenido(datos)) {
+  if (detenido) {
     clase = 'cerrado';
     texto = 'Servicio detenido';
     detalle = '<br><small>' + escapar(datos.servicio_detenido.motivo) + '</small>';
@@ -388,16 +434,16 @@ function actualizarRapido(datos) {
   }
 
   const proxima = proximaSalidaDate(ahora, salidas);
-  document.getElementById('proxima-salida').textContent = proxima && !servicioDetenido(datos)
+  document.getElementById('proxima-salida').textContent = proxima && !detenido
     ? 'Hoy a las ' + formatearHora(proximaHoraDecimal(proxima))
-    : (servicioDetenido(datos) ? 'Sin salidas mientras el servicio esté detenido.' : 'Sin más salidas hoy.');
-  document.getElementById('cuenta-regresiva').textContent = proxima && !servicioDetenido(datos)
+    : (detenido ? 'Sin salidas mientras el servicio esté detenido.' : 'Sin más salidas hoy.');
+  document.getElementById('cuenta-regresiva').textContent = proxima && !detenido
     ? 'Faltan ' + formatearCuenta(proxima - ahora) : '';
 
   actualizarTren(datos);
 }
 
-// Cada minuto y al llegar datos: listas completas
+// Al llegar datos y cada 30 segundos: listas completas
 function renderCompleto(datos) {
   const ahora = new Date();
   const { salidas } = salidasDel(ahora, datos);
@@ -417,8 +463,9 @@ function renderCompleto(datos) {
 
   renderSalidasHoy(datos, salidas, ahora);
   renderEstaciones(datos.estaciones);
-  renderAvisos(datos.avisos);
-  revisarAvisos(datos, ahora);
+  renderAvisos(datos.avisos || []);
+  revisarNovedades(datos);
+  revisarSalidas(datos, ahora);
 }
 
 function tick() {
