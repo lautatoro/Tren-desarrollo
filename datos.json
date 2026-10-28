@@ -3,16 +3,16 @@
   "servicio": {
     "lunes_a_viernes": { "desde": "08:00", "hasta": "21:00" },
     "fines_de_semana_y_feriados": { "desde": "15:00", "hasta": "21:00" },
-    "frecuencia_horas": 1
+    "frecuencia_minutos": 60
   },
-  "tramo_activo": ["Nodo Tecnológico", "Banda Centro"],
+  "tramo_activo": ["Fórum", "Nodo Tecnológico", "Banda Centro"],
   "estaciones": [
-    { "nombre": "Estación Fórum", "activa": true, "nota": "tramo_activo" },
+    { "nombre": "Estación Fórum", "activa": true, "nota": "" },
     { "nombre": "Estación Botánico / Estadio Único Madre de Ciudades", "activa": false, "nota": "" },
     { "nombre": "Estación Nodo Tecnológico", "activa": true, "nota": "" },
     { "nombre": "Estación Banda Centro", "activa": true, "nota": "" }
   ],
   "avisos": [
-    { "fecha": "2026-10-27", "texto": "Bienvenidos a la app del Tren al Desarrollo. Información de referencia, verificar con el servicio oficial." }
+    { "fecha": "2026-10-27", "texto": "Servicio habilitado hasta Estación Fórum. Información de referencia, verificar con el servicio oficial." }
   ]
 }
