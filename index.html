@@ -16,7 +16,7 @@
 
 <div id="pantalla-carga">
   <img src="logo.png" alt="Tren al Desarrollo" class="carga-logo">
-    <div class="carga-via"><span class="carga-tren"><svg viewBox="0 0 60 34" xmlns="http://www.w3.org/2000/svg" width="46" height="26"><path d="M4 22 Q4 8 18 8 L44 8 Q54 8 56 18 L56 24 Q56 27 53 27 L7 27 Q4 27 4 24 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2"/><path d="M4 17 L56 17" stroke="#D7141A" stroke-width="3"/><rect x="11" y="12" width="8" height="6" rx="1" fill="#0057B8"/><rect x="22" y="12" width="8" height="6" rx="1" fill="#0057B8"/><rect x="33" y="12" width="8" height="6" rx="1" fill="#0057B8"/><rect x="44" y="12" width="7" height="6" rx="1" fill="#0057B8"/><circle cx="15" cy="29" r="4" fill="#003B7A"/><circle cx="45" cy="29" r="4" fill="#003B7A"/></svg></span></div>
+  <div class="carga-via"><span class="carga-tren"><svg viewBox="0 0 60 34" xmlns="http://www.w3.org/2000/svg" width="46" height="26"><path d="M4 22 Q4 8 18 8 L44 8 Q54 8 56 18 L56 24 Q56 27 53 27 L7 27 Q4 27 4 24 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2"/><path d="M4 17 L56 17" stroke="#D7141A" stroke-width="3"/><rect x="11" y="12" width="8" height="6" rx="1" fill="#0057B8"/><rect x="22" y="12" width="8" height="6" rx="1" fill="#0057B8"/><rect x="33" y="12" width="8" height="6" rx="1" fill="#0057B8"/><rect x="44" y="12" width="7" height="6" rx="1" fill="#0057B8"/><circle cx="15" cy="29" r="4" fill="#003B7A"/><circle cx="45" cy="29" r="4" fill="#003B7A"/></svg></span></div>
   <p>Cargando horarios...</p>
 </div>
 
@@ -51,6 +51,7 @@
       <p id="tramo"></p>
       <span class="etiqueta">Salidas cada 1 hora</span>
     </div>
+    <button class="mapa compartir" onclick="compartirWhatsApp()">Compartir por WhatsApp</button>
   </section>
 
   <section id="mapa" class="seccion">
@@ -76,7 +77,7 @@
     </div>
     <div class="tarjeta">
       <h3>Salidas de hoy</h3>
-      <p id="lista-salidas"></p>
+      <div id="lista-salidas"></div>
     </div>
   </section>
 
