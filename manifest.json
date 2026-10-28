@@ -1,0 +1,13 @@
+{
+  "name": "Tren al Desarrollo",
+  "short_name": "Tren al Desarrollo",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EEF3FA",
+  "theme_color": "#0057B8",
+  "icons": [
+    { "src": "logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
