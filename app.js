@@ -598,3 +598,8 @@ if ('Notification' in window && Notification.permission === 'granted') {
   const btn = document.getElementById('btn-notificar');
   if (btn) btn.textContent = 'Notificaciones activas';
 }
+
+// Registro del service worker (modo sin conexión y actualizaciones)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
+}
