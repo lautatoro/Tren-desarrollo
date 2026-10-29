@@ -1,8 +1,8 @@
 {
   "servicio_detenido": {
-    "activo": true,
-    "motivo": "Cortes de puente",
-    "desde": "2026-10-29 18:54"
+    "activo": false,
+    "motivo": "",
+    "desde": ""
   },
   "ultima_actualizacion": "2026-10-29",
   "servicio": {
