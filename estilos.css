@@ -203,7 +203,15 @@ footer { text-align: center; font-size: .78rem; opacity: .6; padding: 16px; }
 .banner-urgente.oculto { display: none; }
 
 /* ----- Indicador de conexión ----- */
-.estado-conexion { margin: 10px 14px 0; font-size: .8rem; text-align: center; opacity: .75; }
+.estado-conexion {
+  margin: 12px 14px 4px;
+  font-size: .85rem;
+  text-align: center;
+  color: var(--texto);
+  opacity: 1;
+  position: relative;
+  z-index: 6;
+}
 .estado-conexion.sin-conexion { color: #D7141A; opacity: 1; font-weight: 700; }
 
 @media (prefers-reduced-motion: reduce) {
