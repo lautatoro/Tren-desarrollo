@@ -127,11 +127,26 @@
 
     <div class="tarjeta">
       <h2>Publicar aviso</h2>
+
+      <div class="fila" style="margin-top:0;">
+        <button class="btn secundario pequeno" onclick="plantilla('Demora de 15 minutos por obras', 'demora')">Demora 15 min</button>
+        <button class="btn secundario pequeno" onclick="plantilla('Servicio reanudado', 'novedad')">Reanudado</button>
+        <button class="btn secundario pequeno" onclick="plantilla('Corte del servicio en Botánico por obras', 'corte')">Corte Botánico</button>
+      </div>
+
       <label>Tipo
         <select id="tipo" class="campo">
           <option value="novedad">Novedad</option>
           <option value="demora">Demora</option>
           <option value="corte">Corte</option>
+        </select>
+      </label>
+      <label>Vence en
+        <select id="horas" class="campo">
+          <option value="1">1 hora</option>
+          <option value="3" selected>3 horas</option>
+          <option value="6">6 horas</option>
+          <option value="24">24 horas</option>
         </select>
       </label>
       <label>Aviso
@@ -237,6 +252,12 @@
     }
   }
 
+  function plantilla(texto, tipo) {
+    document.getElementById('texto').value = texto;
+    document.getElementById('tipo').value = tipo;
+    document.getElementById('contador').textContent = texto.length;
+  }
+
   async function cargarAvisos() {
     const lista = document.getElementById('lista-avisos');
     document.getElementById('msg-lista').textContent = '';
@@ -244,13 +265,14 @@
       const avisos = await api('/avisos');
       lista.innerHTML = avisos.length ? avisos.map(a => {
         const tipo = ETIQUETAS[a.tipo] ? a.tipo : 'novedad';
-        return `<div class="aviso ${tipo}">
+        const vencido = a.vence && new Date(a.vence) <= new Date();
+        return `<div class="aviso ${tipo}" style="${vencido ? 'opacity:.5' : ''}">
           <div class="aviso-top">
-            <span class="etiqueta-tipo">${ETIQUETAS[tipo]}</span>
+            <span class="etiqueta-tipo">${ETIQUETAS[tipo]}${vencido ? ' · vencido' : ''}</span>
             <button class="btn peligro pequeno" onclick="borrarAviso('${escapar(a.id)}')">Borrar</button>
           </div>
           <p>${escapar(a.texto)}</p>
-          <small>${escapar(a.fecha)}${a.autor ? ' · ' + escapar(a.autor) : ''}</small>
+          <small>${escapar(a.fecha)}${a.autor ? ' · ' + escapar(a.autor) : ''}${a.vence ? ' · vence ' + escapar(new Date(a.vence).toLocaleString('es-AR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })) : ''}</small>
         </div>`;
       }).join('') : '<p class="vacio">No hay avisos publicados.</p>';
     } catch (e) {
@@ -275,6 +297,7 @@
   async function publicar() {
     const texto = document.getElementById('texto').value.trim();
     const tipo = document.getElementById('tipo').value;
+    const horas = Number(document.getElementById('horas').value);
     const msg = document.getElementById('msg-publicar');
     const btn = document.getElementById('btn-publicar');
     if (!texto) { msg.className = 'msg'; msg.textContent = 'Escribí un aviso antes de publicar.'; return; }
@@ -283,7 +306,7 @@
     msg.className = 'msg';
     msg.textContent = 'Publicando...';
     try {
-      await api('/avisos', { method: 'POST', body: JSON.stringify({ texto, tipo }) });
+      await api('/avisos', { method: 'POST', body: JSON.stringify({ texto, tipo, horas }) });
       document.getElementById('texto').value = '';
       document.getElementById('contador').textContent = '0';
       msg.className = 'msg ok';
