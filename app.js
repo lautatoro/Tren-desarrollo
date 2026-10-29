@@ -46,6 +46,11 @@ function mostrar(id, boton) {
   if (id === 'mapa' && mapa) setTimeout(() => mapa.invalidateSize(), 100);
 }
 
+// Un aviso está vigente si no tiene vencimiento o todavía no venció
+function esVigente(a) {
+  return !a.vence || new Date(a.vence) > new Date();
+}
+
 // ---------- HORARIOS ----------
 
 function salidasDel(fecha, datos) {
@@ -174,15 +179,15 @@ function revisarNovedades(datos) {
   const avisos = datos.avisos || [];
   const idsActuales = avisos.map(a => a.id).filter(Boolean);
   const vistos = leerVistos();
-  const ordenados = ordenarAvisos(avisos);
+  const vigentes = ordenarAvisos(avisos.filter(esVigente));
 
   if (vistos === null) {
     // Primera vez: guardamos la base sin notificar
     guardarVistos(idsActuales);
   } else {
-    const nuevos = ordenados.filter(a => a.id && !vistos.includes(a.id));
+    const nuevos = vigentes.filter(a => a.id && !vistos.includes(a.id));
     nuevos.forEach(a => {
-      const numero = ordenados.indexOf(a) + 1;
+      const numero = vigentes.indexOf(a) + 1;
       const tipo = ETIQUETAS_AVISO[a.tipo] ? a.tipo : 'novedad';
       const emoji = tipo === 'corte' ? '🔴 ' : tipo === 'demora' ? '🟠 ' : '🔵 ';
       avisarPasajero(emoji + ETIQUETAS_AVISO[tipo] + ' #' + numero, a.texto, tipo === 'corte');
@@ -246,10 +251,11 @@ function renderAvisos(avisos) {
   const hoy = new Date().toISOString().slice(0, 10);
   let html = '';
 
-  if (!avisos.length) {
+  const vigentes = avisos.filter(esVigente);
+  if (!vigentes.length) {
     html = '<div class="tarjeta"><p>No hay avisos por ahora.</p></div>';
   } else {
-    html = ordenarAvisos(avisos).map((a, i) => {
+    html = ordenarAvisos(vigentes).map((a, i) => {
       const tipo = ETIQUETAS_AVISO[a.tipo] ? a.tipo : 'novedad';
       const c = COLORES_AVISO[tipo];
       const nuevo = a.fecha === hoy ? '<span class="etiqueta-nuevo">Nuevo</span>' : '';
@@ -274,7 +280,7 @@ function renderAvisos(avisos) {
   contenedor.innerHTML = html;
 }
 
-// Banner arriba: servicio detenido o aviso de corte
+// Banner arriba: servicio detenido o aviso de corte vigente
 function renderBanner(datos) {
   const banner = document.getElementById('banner-urgente');
   if (!banner) return;
@@ -285,7 +291,7 @@ function renderBanner(datos) {
     return;
   }
 
-  const corte = (datos.avisos || []).find(a => a.tipo === 'corte');
+  const corte = (datos.avisos || []).find(a => a.tipo === 'corte' && esVigente(a));
   if (corte) {
     banner.className = 'banner-urgente corte';
     banner.innerHTML = '<strong>Corte del servicio</strong>' + escapar(corte.texto);
