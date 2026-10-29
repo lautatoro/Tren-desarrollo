@@ -1,4 +1,4 @@
-const CACHE = 'tren-v6';
+const CACHE = 'tren-v7';
 const ARCHIVOS = ['./', './index.html', './estilos.css', './app.js', './logo.png', './manifest.json'];
 
 self.addEventListener('install', e => {
@@ -21,7 +21,6 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
 
-  // Datos, mapas y librerías externas: siempre desde la red
   if (url.pathname.endsWith('datos.json') ||
       url.hostname.includes('tile.openstreetmap') ||
       url.hostname.includes('google.com') ||
@@ -30,7 +29,6 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Red primero; si no hay conexión, caché
   e.respondWith(
     fetch(new Request(e.request, { cache: 'no-cache' }))
       .then(r => {
