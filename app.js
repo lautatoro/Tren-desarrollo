@@ -144,6 +144,22 @@ function compartirWhatsApp() {
 
 // ---------- NOTIFICACIONES ----------
 
+// Las notificaciones se muestran desde el service worker (Android no permite new Notification)
+function avisarPasajero(titulo, texto, urgente) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const opciones = {
+    body: texto,
+    icon: 'logo.png',
+    tag: urgente ? 'tren-urgente' : 'tren-aviso',
+    requireInteraction: !!urgente
+  };
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready
+      .then(reg => reg.showNotification(titulo, opciones))
+      .catch(err => console.log('Notificación error:', err));
+  }
+}
+
 function activarNotificaciones() {
   const estadoNotif = document.getElementById('estado-notif');
   if (!('Notification' in window)) {
@@ -154,20 +170,10 @@ function activarNotificaciones() {
     if (permiso === 'granted') {
       estadoNotif.textContent = 'Notificaciones activadas. Te avisamos de avisos nuevos, cortes y salidas.';
       document.getElementById('btn-notificar').textContent = 'Notificaciones activas';
-      new Notification('Tren al Desarrollo', { body: 'Listo, te avisamos de novedades.', icon: 'logo.png' });
+      avisarPasajero('Tren al Desarrollo', 'Listo, te avisamos de novedades.', false);
     } else {
       estadoNotif.textContent = 'No se activaron las notificaciones. Podés cambiarlo en la configuración del navegador.';
     }
-  });
-}
-
-function avisarPasajero(titulo, texto, urgente) {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  new Notification(titulo, {
-    body: texto,
-    icon: 'logo.png',
-    tag: urgente ? 'tren-urgente' : 'tren-aviso',
-    requireInteraction: !!urgente
   });
 }
 
@@ -233,7 +239,7 @@ function revisarSalidas(datos, ahora) {
     if (falta > 0 && falta <= 5 && !yaAvisadas[clave]) {
       yaAvisadas[clave] = true;
       const texto = 'Sale el tren desde Fórum en ' + falta + ' minutos (' + formatearHora(h) + ' hs)';
-      new Notification('Tren al Desarrollo', { body: texto, icon: 'logo.png' });
+      avisarPasajero('Tren al Desarrollo', texto, false);
       guardarEnHistorial(texto, ahora);
     }
   }
@@ -568,8 +574,10 @@ function renderCompleto(datos) {
   renderAvisos(datos.avisos || []);
   renderBanner(datos);
   renderResumenHoy(datos);
-  revisarNovedades(datos);
-  revisarSalidas(datos, ahora);
+
+  // Un error en notificaciones no debe tirar abajo la pantalla
+  try { revisarNovedades(datos); } catch (e) { console.log(e); }
+  try { revisarSalidas(datos, ahora); } catch (e) { console.log(e); }
 }
 
 function tick() {
@@ -635,7 +643,7 @@ if ('Notification' in window && Notification.permission === 'granted') {
   if (btn) btn.textContent = 'Notificaciones activas';
 }
 
-// Registro del service worker (modo sin conexión y actualizaciones)
+// Registro del service worker (modo sin conexión y notificaciones)
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
 }
