@@ -33,15 +33,13 @@ body {
   background: var(--fondo);
 }
 
-/* Fondo animado con burbujas de luz */
 body::before, body::after {
   content: "";
   position: fixed;
-  width: 320px;
-  height: 320px;
+  width: 320px; height: 320px;
   border-radius: 50%;
   filter: blur(80px);
-  opacity: 0.35;
+  opacity: .35;
   z-index: -1;
   animation: flotar 14s ease-in-out infinite alternate;
 }
@@ -57,325 +55,159 @@ header {
   overflow: hidden;
   background: linear-gradient(135deg, var(--azul) 0%, var(--azul-oscuro) 100%);
   color: #fff;
-  padding: 26px 20px 30px;
+  padding: 22px 20px 30px;
   border-radius: 0 0 28px 28px;
-  box-shadow: 0 10px 30px rgba(0, 59, 122, 0.3);
-  animation: bajar 0.6s ease both;
+  box-shadow: 0 10px 30px rgba(0, 59, 122, .3);
 }
 header::after {
-  content: "";
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 6px;
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px;
   background: linear-gradient(90deg, var(--rojo), #ff5e62, var(--rojo));
-  background-size: 200% 100%;
-  animation: brillo 3s linear infinite;
 }
-header h1 {
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.logo-header {
+  display: block; height: 70px; width: auto; background: #fff;
+  border-radius: 14px; padding: 6px 10px; margin-bottom: 10px;
 }
-header h1::before {
-  content: "🚆";
-  display: inline-block;
-  animation: tren 3s ease-in-out infinite;
-}
-header p { font-size: 0.9rem; opacity: 0.9; margin-top: 6px; }
-
-@keyframes bajar {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: none; }
-}
-@keyframes tren {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(6px); }
-}
-@keyframes brillo {
-  from { background-position: 0 0; }
-  to { background-position: 200% 0; }
-}
+header p { font-size: .9rem; opacity: .9; }
 
 nav {
-  display: flex;
-  gap: 6px;
-  margin: -18px 14px 0;
-  padding: 6px;
-  position: relative;
-  z-index: 5;
-  background: var(--superficie);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: var(--sombra);
+  display: flex; gap: 6px; margin: -18px 14px 0; padding: 6px;
+  position: relative; z-index: 5;
+  background: var(--superficie); backdrop-filter: blur(10px);
+  border-radius: 16px; box-shadow: var(--sombra);
 }
 nav button {
-  flex: 1;
-  padding: 10px 4px;
-  border: none;
-  border-radius: 12px;
-  background: transparent;
-  font-size: 0.88rem;
-  color: var(--azul-oscuro);
-  cursor: pointer;
-  transition: all 0.25s ease;
+  flex: 1; padding: 10px 4px; border: none; border-radius: 12px;
+  background: transparent; font-size: .85rem; color: var(--azul-oscuro);
+  cursor: pointer; transition: all .25s ease;
 }
 nav button.activo {
   background: linear-gradient(135deg, var(--azul), var(--azul-oscuro));
-  color: #fff;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0, 87, 184, 0.35);
+  color: #fff; font-weight: 700; box-shadow: 0 4px 12px rgba(0,87,184,.35);
 }
 
 main { padding: 18px 16px 8px; }
 .seccion { display: none; }
 .seccion.activa { display: block; }
-.seccion.activa > * {
-  animation: subir 0.45s ease both;
-}
-.seccion.activa > *:nth-child(2) { animation-delay: 0.08s; }
-.seccion.activa > *:nth-child(3) { animation-delay: 0.16s; }
-.seccion.activa > *:nth-child(4) { animation-delay: 0.24s; }
-@keyframes subir {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: none; }
-}
 
 .estado {
-  background: var(--superficie);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 18px;
-  margin-bottom: 14px;
-  box-shadow: var(--sombra);
-  display: flex;
-  align-items: center;
-  font-size: 1rem;
+  background: var(--superficie); backdrop-filter: blur(10px);
+  border-radius: 20px; padding: 18px; margin-bottom: 14px;
+  box-shadow: var(--sombra); display: flex; align-items: center; font-size: 1rem;
+  flex-wrap: wrap;
 }
-.punto {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  margin-right: 12px;
-  flex-shrink: 0;
-}
-.abierto .punto {
-  background: var(--verde);
-  animation: pulso 1.8s infinite;
-}
+.punto { width: 14px; height: 14px; border-radius: 50%; margin-right: 12px; flex-shrink: 0; }
+.abierto .punto { background: var(--verde); animation: pulso 1.8s infinite; }
 .cerrado .punto { background: var(--rojo); }
 @keyframes pulso {
-  0% { box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.7); }
-  70% { box-shadow: 0 0 0 12px rgba(29, 185, 84, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(29, 185, 84, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(29,185,84,.7); }
+  70% { box-shadow: 0 0 0 12px rgba(29,185,84,0); }
+  100% { box-shadow: 0 0 0 0 rgba(29,185,84,0); }
 }
 
 .tarjeta {
-  background: var(--superficie);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 18px;
-  margin-bottom: 14px;
-  box-shadow: var(--sombra);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  background: var(--superficie); backdrop-filter: blur(10px);
+  border-radius: 20px; padding: 18px; margin-bottom: 14px;
+  box-shadow: var(--sombra); border: 1px solid rgba(255,255,255,.4);
 }
-.tarjeta:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 32px rgba(0, 59, 122, 0.18);
+.tarjeta h2, .tarjeta h3 {
+  font-size: 1.02rem; font-weight: 700; color: var(--azul-oscuro); margin-bottom: 6px;
 }
-.tarjeta h3 {
-  font-size: 1.02rem;
-  font-weight: 700;
-  color: var(--azul-oscuro);
-  margin-bottom: 6px;
-}
-.tarjeta p { font-size: 0.92rem; opacity: 0.85; line-height: 1.55; }
-.inactiva { opacity: 0.55; }
-.aviso { border-left: 5px solid var(--rojo); }
+.tarjeta p { font-size: .92rem; opacity: .85; line-height: 1.55; }
+.inactiva { opacity: .55; }
 
 .etiqueta {
-  display: inline-block;
-  background: linear-gradient(135deg, var(--azul), var(--azul-oscuro));
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 999px;
-  margin-top: 8px;
+  display: inline-block; background: linear-gradient(135deg, var(--azul), var(--azul-oscuro));
+  color: #fff; font-size: .75rem; font-weight: 600; padding: 4px 12px;
+  border-radius: 999px; margin-top: 8px;
 }
 .etiqueta.gris { background: #9AA5B1; }
-.cargando { opacity: 0.7; }
 
-footer {
-  text-align: center;
-  font-size: 0.78rem;
-  opacity: 0.6;
-  padding: 20px 16px 32px;
-}
-.aviso-novedad { border-left: 5px solid var(--azul); }
-.aviso-demora { border-left: 5px solid #F5A623; }
-.aviso-corte { border-left: 5px solid var(--rojo); }
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
-}
-.mapa {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 8px 14px;
-  border-radius: 999px;
+.boton, .boton-compartir {
+  display: block; width: 100%; border: none; border-radius: 999px;
+  padding: 12px; font-size: .95rem; font-weight: 700; color: #fff; cursor: pointer;
   background: linear-gradient(135deg, var(--azul), var(--azul-oscuro));
-  color: #fff;
-  text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 600;
 }
+.boton-compartir { background: #25D366; margin: 6px 0 14px; }
 
-.acciones { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
-button.mapa { border: none; cursor: pointer; font-family: inherit; }
+footer { text-align: center; font-size: .78rem; opacity: .6; padding: 16px; }
+
+.mapa {
+  display: inline-block; margin-top: 10px; padding: 8px 14px; border-radius: 999px;
+  background: linear-gradient(135deg, var(--azul), var(--azul-oscuro));
+  color: #fff; text-decoration: none; font-size: .85rem; font-weight: 600; border: none; cursor: pointer;
+}
 .mapa.secundario { background: none; color: var(--azul-oscuro); border: 1.5px solid var(--azul); }
+.acciones { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
 .caja-mapa { display: none; margin-top: 12px; border-radius: 14px; overflow: hidden; }
 .caja-mapa.visible { display: block; }
 .caja-mapa iframe { width: 100%; height: 240px; border: 0; display: block; }
 #mapa-canvas { height: 380px; border-radius: 20px; overflow: hidden; box-shadow: var(--sombra); }
-.tren-icono { font-size: 26px; line-height: 34px; text-align: center; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+.tren-icono { font-size: 26px; line-height: 34px; text-align: center; filter: drop-shadow(0 2px 4px rgba(0,0,0,.3)); }
+
+.fila-salida {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,.06);
+}
+.fila-salida.actual { background: rgba(29,185,84,.12); border-radius: 12px; padding: 10px; }
+
+.historial-item { border-bottom: 1px solid rgba(0,0,0,.06); padding: 8px 0; }
 
 #pantalla-carga {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
+  position: fixed; inset: 0; z-index: 100;
   background: linear-gradient(135deg, #0057B8, #003B7A);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  transition: opacity 0.5s ease;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: #fff; transition: opacity .5s ease;
 }
 #pantalla-carga.oculta { opacity: 0; pointer-events: none; }
-#pantalla-carga p { margin-top: 18px; font-size: 0.95rem; opacity: 0.9; }
-.carga-logo { width: 160px; animation: latido 1.6s ease-in-out infinite; }
-.carga-via { width: 200px; height: 4px; background: rgba(255,255,255,0.25); border-radius: 4px; position: relative; margin-top: 24px; overflow: visible; }
-.carga-tren { position: absolute; top: -14px; font-size: 22px; animation: viaje 1.6s linear infinite; }
-@keyframes latido {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-@keyframes viaje {
-  from { left: -10px; }
-  to { left: 180px; }
-}
+#pantalla-carga p { margin-top: 18px; font-size: .95rem; opacity: .9; }
+.carga-logo { width: 160px; font-size: 64px; text-align: center; }
+.carga-via { width: 200px; height: 4px; background: rgba(255,255,255,.25); border-radius: 4px; position: relative; margin-top: 24px; }
+.carga-tren { position: absolute; top: -20px; animation: viaje 1.6s linear infinite; }
+.carga-tren svg { width: 40px; display: block; }
+@keyframes viaje { from { left: -10px; } to { left: 180px; } }
 
-.carga-tren { top: -20px; }
-.carga-tren svg { display: block; }
-
-.compartir { display: block; width: 100%; margin-top: 12px; background: #25D366; color: #fff; border: none; }
-.fila-salida { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 10px; margin-bottom: 6px; background: rgba(0,87,184,0.06); }
-.fila-salida.actual { background: rgba(215,20,26,0.12); font-weight: 700; }
-.historial-item { font-size: 0.85rem; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08); }
-.fila-salida small { color: #555; font-size: 0.8rem; }
-/* Accesibilidad */
-.saltar { position: absolute; left: -9999px; top: 0; background: #fff; color: var(--azul-oscuro); padding: 8px 12px; z-index: 200; }
-.saltar:focus { left: 12px; top: 12px; }
-button:focus-visible, a:focus-visible { outline: 3px solid #FFB400; outline-offset: 2px; }
-nav button[aria-pressed="true"] { text-decoration: underline; }
-.tarjeta[hidden], .estado[hidden] { display: none; }
-[hidden] { display: none !important; }
-@media (prefers-contrast: more) {
-  .tarjeta, .estado { border: 2px solid var(--azul-oscuro); }
-  .etiqueta { background: var(--azul-oscuro); }
-}
-/* ----- Avisos públicos con color por tipo ----- */
+/* ----- Seccion de avisos (numeración y color) ----- */
 .aviso-publico {
-  border-radius: 16px;
-  padding: 14px 16px;
-  margin-bottom: 12px;
-  border-left: 6px solid var(--azul);
-  background: #F3F7FD;
-  box-shadow: var(--sombra);
+  border-radius: 16px; padding: 14px 16px; margin-bottom: 12px;
+  border-left: 6px solid #0057B8; background: #F3F7FD; box-shadow: var(--sombra);
 }
-.aviso-publico.aviso-demora { border-left-color: #F5A623; background: #FFF7E8; }
-.aviso-publico.aviso-corte { border-left-color: #D7141A; background: #FFF0F0; }
-
 .aviso-publico p { margin: 6px 0; line-height: 1.5; font-size: .95rem; color: var(--texto); }
 .aviso-publico small { opacity: .65; font-size: .78rem; }
+.aviso-cabecera { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-.aviso-cabecera { display: flex; align-items: center; gap: 8px; }
-
-.etiqueta-tipo-novedad,
-.etiqueta-tipo-demora,
-.etiqueta-tipo-corte {
+.etiqueta-tipo-novedad, .etiqueta-tipo-demora, .etiqueta-tipo-corte {
   display: inline-block; font-size: .72rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .4px;
-  padding: 4px 10px; border-radius: 999px; color: #fff;
+  text-transform: uppercase; letter-spacing: .4px; padding: 4px 10px; border-radius: 999px; color: #fff;
 }
 .etiqueta-tipo-novedad { background: #0057B8; }
 .etiqueta-tipo-demora { background: #F5A623; color: #3a2600; }
 .etiqueta-tipo-corte { background: #D7141A; }
 
 .etiqueta-nuevo {
-  font-size: .68rem; font-weight: 700; padding: 3px 8px;
-  border-radius: 999px; background: #1DB954; color: #fff;
+  font-size: .68rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: #1DB954; color: #fff;
+}
+.numero-aviso {
+  display: inline-block; color: #fff; font-weight: 800; font-size: .8rem;
+  padding: 3px 9px; border-radius: 8px; min-width: 34px; text-align: center;
 }
 
-@media (prefers-color-scheme: dark) {
-  .aviso-publico { background: #16243A; }
-  .aviso-publico.aviso-demora { background: #3A2C12; }
-  .aviso-publico.aviso-corte { background: #3A1616; }
-}
-/* ----- Banner urgente (servicio detenido o corte) ----- */
+/* ----- Banner urgente ----- */
 .banner-urgente {
-  margin: 12px 14px 0;
-  padding: 14px 16px;
-  border-radius: 16px;
-  color: #fff;
-  font-size: .95rem;
-  line-height: 1.45;
-  box-shadow: 0 8px 22px rgba(0,0,0,.18);
-  position: relative;
-  z-index: 6;
+  margin: 12px 14px 0; padding: 14px 16px; border-radius: 16px; color: #fff;
+  font-size: .95rem; line-height: 1.45; box-shadow: 0 8px 22px rgba(0,0,0,.18);
+  position: relative; z-index: 6;
 }
 .banner-urgente.detenido { background: linear-gradient(135deg, #D7141A, #9E0E12); }
 .banner-urgente.corte { background: linear-gradient(135deg, #F5A623, #D97706); color: #2b1800; }
 .banner-urgente strong { display: block; font-size: 1rem; margin-bottom: 4px; }
 .banner-urgente.oculto { display: none; }
 
-/* ----- Avisos públicos ----- */
-.aviso-publico {
-  border-radius: 16px;
-  padding: 14px 16px;
-  margin-bottom: 12px;
-  border-left: 6px solid #0057B8;
-  background: #F3F7FD;
-  box-shadow: var(--sombra);
-}
-.aviso-publico p { margin: 6px 0; line-height: 1.5; font-size: .95rem; color: var(--texto); }
-.aviso-publico small { opacity: .65; font-size: .78rem; }
+/* ----- Indicador de conexión ----- */
+.estado-conexion { margin: 10px 14px 0; font-size: .8rem; text-align: center; opacity: .75; }
+.estado-conexion.sin-conexion { color: #D7141A; opacity: 1; font-weight: 700; }
 
-.aviso-cabecera { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-
-.etiqueta-tipo-novedad,
-.etiqueta-tipo-demora,
-.etiqueta-tipo-corte {
-  display: inline-block; font-size: .72rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .4px;
-  padding: 4px 10px; border-radius: 999px; color: #fff;
-}
-.etiqueta-tipo-novedad { background: #0057B8; }
-.etiqueta-tipo-demora { background: #F5A623; color: #3a2600; }
-.etiqueta-tipo-corte { background: #D7141A; }
-
-.etiqueta-nuevo {
-  font-size: .68rem; font-weight: 700; padding: 3px 8px;
-  border-radius: 999px; background: #1DB954; color: #fff;
-}
-
-.numero-aviso {
-  display: inline-block; color: #fff; font-weight: 800; font-size: .8rem;
-  padding: 3px 9px; border-radius: 8px; min-width: 34px; text-align: center;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
 @media (prefers-color-scheme: dark) {
