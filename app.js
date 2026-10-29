@@ -629,7 +629,7 @@ function cargarDatos() {
 cargarDatos()
   .then(() => {
     setInterval(tick, 1000);
-    setInterval(() => cargarDatos().catch(() => {}), 30000);
+    setInterval(() => cargarDatos().catch(() => {}), 10000);
   })
   .catch(err => {
     const estado = document.getElementById('estado-servicio');
