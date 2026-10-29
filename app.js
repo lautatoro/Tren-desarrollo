@@ -317,6 +317,40 @@ function renderBanner(datos) {
   banner.innerHTML = '';
 }
 
+// Resumen "Hoy": próxima salida y último aviso vigente
+function renderResumenHoy(datos) {
+  const ahora = new Date();
+  const { salidas } = salidasDel(ahora, datos);
+  const proxima = proximaSalidaDate(ahora, salidas);
+  const detenido = servicioDetenido(datos);
+
+  const hora = document.getElementById('resumen-hora');
+  const cuenta = document.getElementById('resumen-cuenta');
+  const aviso = document.getElementById('resumen-aviso');
+  if (!hora) return;
+
+  if (detenido) {
+    hora.textContent = 'Detenido';
+    cuenta.textContent = 'Servicio suspendido';
+  } else if (proxima) {
+    hora.textContent = formatearHora(proximaHoraDecimal(proxima));
+    cuenta.textContent = 'Faltan ' + formatearCuenta(proxima - ahora);
+  } else {
+    hora.textContent = '--:--';
+    cuenta.textContent = 'Sin más salidas hoy';
+  }
+
+  const ultimo = ordenarAvisos((datos.avisos || []).filter(esVigente))[0];
+  if (ultimo) {
+    const tipo = ETIQUETAS_AVISO[ultimo.tipo] ? ultimo.tipo : 'novedad';
+    aviso.className = 'resumen-aviso ' + tipo;
+    aviso.textContent = ETIQUETAS_AVISO[tipo] + ': ' + ultimo.texto;
+  } else {
+    aviso.className = 'resumen-aviso';
+    aviso.textContent = 'Sin avisos vigentes';
+  }
+}
+
 function alternarMapa(id) {
   const caja = document.getElementById('mapa-' + id);
   const abierto = caja.classList.toggle('visible');
@@ -472,7 +506,7 @@ function actualizarIndicadorConexion() {
 
 // ---------- ACTUALIZACIÓN ----------
 
-// Cada segundo: estado, cuenta regresiva, posición del tren e indicador
+// Cada segundo: estado, cuenta regresiva, resumen, posición del tren e indicador
 function actualizarRapido(datos) {
   const ahora = new Date();
   const { salidas, bloque } = salidasDel(ahora, datos);
@@ -506,6 +540,7 @@ function actualizarRapido(datos) {
   document.getElementById('cuenta-regresiva').textContent = proxima && !detenido
     ? 'Faltan ' + formatearCuenta(proxima - ahora) : '';
 
+  renderResumenHoy(datos);
   actualizarTren(datos);
   actualizarIndicadorConexion();
 }
@@ -532,6 +567,7 @@ function renderCompleto(datos) {
   renderEstaciones(datos.estaciones);
   renderAvisos(datos.avisos || []);
   renderBanner(datos);
+  renderResumenHoy(datos);
   revisarNovedades(datos);
   revisarSalidas(datos, ahora);
 }
