@@ -42,6 +42,16 @@
   </nav>
 
   <main>
+    <!-- RESUMEN HOY -->
+    <div id="resumen-hoy" class="resumen-hoy">
+      <div class="resumen-proxima">
+        <span class="resumen-etiqueta">Próxima salida</span>
+        <strong id="resumen-hora">--:--</strong>
+        <span id="resumen-cuenta" class="resumen-cuenta">--</span>
+      </div>
+      <div id="resumen-aviso" class="resumen-aviso">Sin avisos vigentes</div>
+    </div>
+
     <!-- ESTADO -->
     <section id="estado" class="seccion activa" role="tabpanel">
       <div id="estado-servicio" class="estado"><span class="punto"></span><strong>Cargando...</strong></div>
@@ -59,7 +69,7 @@
         <div class="etiqueta" id="frecuencia">Salidas cada 1 hora</div>
       </div>
 
-      <div class="ttarjeta tarjeta">
+      <div class="tarjeta">
         <h2>Notificaciones</h2>
         <p id="estado-notif" style="margin-bottom:12px; font-size:.9rem;">Te avisamos de avisos nuevos, cortes y salidas.</p>
         <button id="btn-notificar" onclick="activarNotificaciones()" class="boton">🔔 Activar notificaciones</button>
