@@ -25,46 +25,16 @@
     "Banda Centro"
   ],
   "trazado": [
-    [
-      -27.77966,
-      -64.26312
-    ],
-    [
-      -27.76762,
-      -64.26967
-    ],
-    [
-      -27.764,
-      -64.265
-    ],
-    [
-      -27.76,
-      -64.262
-    ],
-    [
-      -27.75724,
-      -64.26133
-    ],
-    [
-      -27.752,
-      -64.258
-    ],
-    [
-      -27.746,
-      -64.253
-    ],
-    [
-      -27.74,
-      -64.248
-    ],
-    [
-      -27.736,
-      -64.244
-    ],
-    [
-      -27.73252,
-      -64.24038
-    ]
+    [-27.77966, -64.26312],
+    [-27.76762, -64.26967],
+    [-27.764, -64.265],
+    [-27.76, -64.262],
+    [-27.75724, -64.26133],
+    [-27.752, -64.258],
+    [-27.746, -64.253],
+    [-27.74, -64.248],
+    [-27.736, -64.244],
+    [-27.73252, -64.24038]
   ],
   "estaciones": [
     {
@@ -72,10 +42,7 @@
       "activa": true,
       "nota": "",
       "direccion": "Av. Roca y Perú, Santiago del Estero",
-      "servicios_cercanos": [
-        "Centro de Convenciones Fórum",
-        "Terminal de Ómnibus"
-      ],
+      "servicios_cercanos": ["Centro de Convenciones Fórum", "Terminal de Ómnibus"],
       "mapa": "https://www.google.com/maps/search/?api=1&query=-27.7796560685231,-64.26311693533795",
       "lat": -27.7796560685231,
       "lng": -64.26311693533795
@@ -85,10 +52,7 @@
       "activa": true,
       "nota": "",
       "direccion": "Frente al Jardín Botánico, Santiago del Estero",
-      "servicios_cercanos": [
-        "Estadio Único Madre de Ciudades",
-        "Jardín Botánico"
-      ],
+      "servicios_cercanos": ["Estadio Único Madre de Ciudades", "Jardín Botánico"],
       "mapa": "https://www.google.com/maps/search/?api=1&query=-27.76762137313474,-64.26966974616168",
       "lat": -27.76762137313474,
       "lng": -64.26966974616168
@@ -98,9 +62,7 @@
       "activa": true,
       "nota": "",
       "direccion": "Nodo Tecnológico, La Banda",
-      "servicios_cercanos": [
-        "Nodo Tecnológico"
-      ],
+      "servicios_cercanos": ["Nodo Tecnológico"],
       "mapa": "https://www.google.com/maps/search/?api=1&query=-27.757243580824536,-64.26132961673615",
       "lat": -27.757243580824536,
       "lng": -64.26132961673615
@@ -110,9 +72,7 @@
       "activa": true,
       "nota": "",
       "direccion": "La Banda, Santiago del Estero",
-      "servicios_cercanos": [
-        "Estación Banda (Ferrocarril Mitre)"
-      ],
+      "servicios_cercanos": ["Estación Banda (Ferrocarril Mitre)"],
       "mapa": "https://www.google.com/maps/search/?api=1&query=-27.732518745318313,-64.2403828739497",
       "lat": -27.732518745318313,
       "lng": -64.2403828739497
@@ -120,31 +80,11 @@
   ],
   "avisos": [
     {
-      "id": "mvsut4sq3arog",
-      "fecha": "2026-10-29",
-      "tipo": "novedad",
-      "texto": "Proxima actualizacion",
-      "autor": "chofer"
-    },
-    {
-      "id": "mvslasd2b18h0",
-      "fecha": "2026-10-28",
-      "tipo": "novedad",
-      "texto": "Funciones Nuevas Integradas",
-      "autor": "chofer"
-    },
-    {
-      "id": "mvskjs46n2mjk",
-      "fecha": "2026-10-28",
-      "tipo": "novedad",
-      "texto": "Pronto Actualizaciones Nuevas",
-      "autor": "chofer"
-    },
-    {
+      "id": "viejo-0-2026-10-28",
       "fecha": "2026-10-28",
       "tipo": "novedad",
       "texto": "Servicio habilitado hasta Estación Fórum. Información de referencia, verificar con el servicio oficial.",
-      "id": "viejo-0-2026-10-28"
+      "autor": ""
     }
   ]
 }
