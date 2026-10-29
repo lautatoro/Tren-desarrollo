@@ -4,7 +4,7 @@
     "motivo": "",
     "desde": ""
   },
-  "ultima_actualizacion": "2026-10-28",
+  "ultima_actualizacion": "2026-10-29",
   "servicio": {
     "lunes_a_viernes": {
       "desde": "08:00",
@@ -119,6 +119,13 @@
     }
   ],
   "avisos": [
+    {
+      "id": "mvsut4sq3arog",
+      "fecha": "2026-10-29",
+      "tipo": "novedad",
+      "texto": "Proxima actualizacion",
+      "autor": "chofer"
+    },
     {
       "id": "mvslasd2b18h0",
       "fecha": "2026-10-28",
