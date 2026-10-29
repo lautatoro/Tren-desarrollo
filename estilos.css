@@ -240,6 +240,27 @@ footer { text-align: center; font-size: .78rem; opacity: .6; padding: 16px; }
 .resumen-aviso.corte { background: #D7141A; }
 .resumen-aviso.demora { background: #F5A623; color: #2b1800; }
 
+/* ----- Tema manual ----- */
+.btn-tema {
+  position: absolute; top: 14px; right: 14px; z-index: 7;
+  background: rgba(255,255,255,.2); border: none; border-radius: 999px;
+  width: 40px; height: 40px; font-size: 1.1rem; cursor: pointer;
+}
+body.tema-oscuro {
+  --fondo: #0B1520;
+  --superficie: rgba(22, 36, 54, 0.85);
+  --texto: #E6EEF7;
+  --azul-oscuro: #9CC8FF;
+  --sombra: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+body.tema-claro {
+  --fondo: #EEF3FA;
+  --superficie: rgba(255, 255, 255, 0.85);
+  --texto: #1C2B3A;
+  --azul-oscuro: #003B7A;
+  --sombra: 0 8px 24px rgba(0, 59, 122, 0.12);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
