@@ -9,6 +9,7 @@ const CLAVE_VISTOS = 'tren-avisos-vistos';
 const CLAVE_ESTADO_DETENIDO = 'tren-estado-detenido';
 const CLAVE_SALIDAS_AVISADAS = 'tren-salidas-avisadas';
 const CLAVE_ULTIMOS_DATOS = 'tren-ultimos-datos';
+const CLAVE_TEMA = 'tren-tema';
 const UMBRAL_SIN_CONEXION = 2 * 60 * 1000;
 
 let ultimaActualizacion = null;
@@ -40,6 +41,24 @@ let datosCargados = null;
 function escapar(s) {
   return String(s ?? '').replace(/[&<>"']/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Tema manual: guarda la elección; si no hay, usa el del sistema
+function aplicarTema() {
+  const guardado = localStorage.getItem(CLAVE_TEMA);
+  const oscuro = guardado
+    ? guardado === 'oscuro'
+    : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.body.classList.toggle('tema-oscuro', oscuro);
+  document.body.classList.toggle('tema-claro', !oscuro);
+  const btn = document.getElementById('btn-tema');
+  if (btn) btn.textContent = oscuro ? '☀️' : '🌙';
+}
+
+function alternarTema() {
+  const esOscuro = document.body.classList.contains('tema-oscuro');
+  localStorage.setItem(CLAVE_TEMA, esOscuro ? 'claro' : 'oscuro');
+  aplicarTema();
 }
 
 function mostrar(id, boton) {
@@ -145,13 +164,14 @@ function compartirWhatsApp() {
 // ---------- NOTIFICACIONES ----------
 
 // Las notificaciones se muestran desde el service worker (Android no permite new Notification)
-function avisarPasajero(titulo, texto, urgente) {
+function avisarPasajero(titulo, texto, urgente, vibrar) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
   const opciones = {
     body: texto,
     icon: 'logo.png',
     tag: urgente ? 'tren-urgente' : 'tren-aviso',
-    requireInteraction: !!urgente
+    requireInteraction: !!urgente,
+    vibrate: vibrar || urgente ? [300, 150, 300] : undefined
   };
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.ready
@@ -225,7 +245,7 @@ function revisarNovedades(datos) {
   localStorage.setItem(CLAVE_ESTADO_DETENIDO, estadoActual);
 }
 
-// Aviso de salida próxima (5 minutos antes)
+// Aviso de salida próxima (5 minutos antes), con vibración
 function revisarSalidas(datos, ahora) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
   if (servicioDetenido(datos)) return;
@@ -239,7 +259,7 @@ function revisarSalidas(datos, ahora) {
     if (falta > 0 && falta <= 5 && !yaAvisadas[clave]) {
       yaAvisadas[clave] = true;
       const texto = 'Sale el tren desde Fórum en ' + falta + ' minutos (' + formatearHora(h) + ' hs)';
-      avisarPasajero('Tren al Desarrollo', texto, false);
+      avisarPasajero('Tren al Desarrollo', texto, false, true);
       guardarEnHistorial(texto, ahora);
     }
   }
@@ -551,7 +571,7 @@ function actualizarRapido(datos) {
   actualizarIndicadorConexion();
 }
 
-// Al llegar datos y cada 30 segundos: listas completas
+// Al llegar datos y cada 10 segundos: listas completas
 function renderCompleto(datos) {
   const ahora = new Date();
   const { salidas } = salidasDel(ahora, datos);
@@ -637,6 +657,8 @@ cargarDatos()
     estado.innerHTML = '<span class="punto"></span><strong>No se pudieron cargar los datos</strong><br><small>' + escapar(err.message) + '</small>';
     ocultarCarga();
   });
+
+aplicarTema();
 
 if ('Notification' in window && Notification.permission === 'granted') {
   const btn = document.getElementById('btn-notificar');
