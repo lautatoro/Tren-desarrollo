@@ -7,15 +7,15 @@ const ESPERA_REFERENCIA = 2;
 const CLAVE_HISTORIAL = 'tren-historial-avisos';
 const CLAVE_VISTOS = 'tren-avisos-vistos';
 const CLAVE_ESTADO_DETENIDO = 'tren-estado-detenido';
-
-const ICONOS_AVISO = {
-  novedad: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#0057B8"/><rect x="11" y="10" width="2" height="8" rx="1" fill="#fff"/><circle cx="12" cy="7" r="1.3" fill="#fff"/></svg>',
-  demora: '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="9" fill="none" stroke="#F5A623" stroke-width="2.5"/><path d="M12 8v5l3 2" stroke="#F5A623" stroke-width="2.2" fill="none" stroke-linecap="round"/><rect x="9" y="1" width="6" height="2.5" rx="1" fill="#F5A623"/></svg>',
-  corte: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#D7141A"/><rect x="6" y="10.5" width="12" height="3" rx="1" fill="#fff"/></svg>'
-};
+const CLAVE_SALIDAS_AVISADAS = 'tren-salidas-avisadas';
 
 const ETIQUETAS_AVISO = { novedad: 'Novedad', demora: 'Demora', corte: 'Corte' };
 const PRIORIDAD_AVISO = { corte: 0, demora: 1, novedad: 2 };
+const COLORES_AVISO = {
+  corte: { color: '#D7141A', fondo: '#FFF0F0' },
+  demora: { color: '#F5A623', fondo: '#FFF7E8' },
+  novedad: { color: '#0057B8', fondo: '#F3F7FD' }
+};
 
 const TREN_SVG = '<svg viewBox="0 0 60 34" xmlns="http://www.w3.org/2000/svg">' +
   '<path d="M4 22 Q4 8 18 8 L44 8 Q54 8 56 18 L56 24 Q56 27 53 27 L7 27 Q4 27 4 24 Z" fill="#FFFFFF" stroke="#0057B8" stroke-width="2"/>' +
@@ -160,20 +160,32 @@ function guardarVistos(ids) {
   catch (e) { /* almacenamiento lleno o bloqueado */ }
 }
 
-// Compara con la última lectura y avisa solo de lo nuevo
+// Mismo orden que la lista pública, así el número coincide
+function ordenarAvisos(avisos) {
+  return [...avisos].sort((a, b) => {
+    const pa = PRIORIDAD_AVISO[a.tipo] ?? 2;
+    const pb = PRIORIDAD_AVISO[b.tipo] ?? 2;
+    if (pa !== pb) return pa - pb;
+    return b.fecha.localeCompare(a.fecha);
+  });
+}
+
 function revisarNovedades(datos) {
   const avisos = datos.avisos || [];
   const idsActuales = avisos.map(a => a.id).filter(Boolean);
   const vistos = leerVistos();
+  const ordenados = ordenarAvisos(avisos);
 
   if (vistos === null) {
     // Primera vez: guardamos la base sin notificar
     guardarVistos(idsActuales);
   } else {
-    const nuevos = avisos.filter(a => a.id && !vistos.includes(a.id));
+    const nuevos = ordenados.filter(a => a.id && !vistos.includes(a.id));
     nuevos.forEach(a => {
-      const esCorte = a.tipo === 'corte';
-      avisarPasajero(esCorte ? 'Corte del servicio' : 'Nuevo aviso del tren', a.texto, esCorte);
+      const numero = ordenados.indexOf(a) + 1;
+      const tipo = ETIQUETAS_AVISO[a.tipo] ? a.tipo : 'novedad';
+      const emoji = tipo === 'corte' ? '🔴 ' : tipo === 'demora' ? '🟠 ' : '🔵 ';
+      avisarPasajero(emoji + ETIQUETAS_AVISO[tipo] + ' #' + numero, a.texto, tipo === 'corte');
     });
     if (nuevos.length) guardarVistos([...idsActuales, ...vistos]);
   }
@@ -182,7 +194,7 @@ function revisarNovedades(datos) {
   const estadoAnterior = localStorage.getItem(CLAVE_ESTADO_DETENIDO);
   const estadoActual = detenido ? 'si' : 'no';
   if (estadoAnterior !== null && estadoAnterior !== estadoActual && detenido) {
-    avisarPasajero('Servicio detenido', datos.servicio_detenido.motivo, true);
+    avisarPasajero('🔴 Servicio detenido', datos.servicio_detenido.motivo, true);
   }
   localStorage.setItem(CLAVE_ESTADO_DETENIDO, estadoActual);
 }
@@ -194,7 +206,7 @@ function revisarSalidas(datos, ahora) {
   const { salidas } = salidasDel(ahora, datos);
   const minAhora = ahora.getHours() * 60 + ahora.getMinutes();
   const hoy = ahora.toDateString();
-  const yaAvisadas = JSON.parse(localStorage.getItem('tren-salidas-avisadas') || '{}');
+  const yaAvisadas = JSON.parse(localStorage.getItem(CLAVE_SALIDAS_AVISADAS) || '{}');
   for (const h of salidas) {
     const falta = h * 60 - minAhora;
     const clave = hoy + '-' + h;
@@ -205,7 +217,7 @@ function revisarSalidas(datos, ahora) {
       guardarEnHistorial(texto, ahora);
     }
   }
-  localStorage.setItem('tren-salidas-avisadas', JSON.stringify(yaAvisadas));
+  localStorage.setItem(CLAVE_SALIDAS_AVISADAS, JSON.stringify(yaAvisadas));
 }
 
 // ---------- HISTORIAL ----------
@@ -237,18 +249,13 @@ function renderAvisos(avisos) {
   if (!avisos.length) {
     html = '<div class="tarjeta"><p>No hay avisos por ahora.</p></div>';
   } else {
-    const ordenados = [...avisos].sort((a, b) => {
-      const pa = PRIORIDAD_AVISO[a.tipo] ?? 2;
-      const pb = PRIORIDAD_AVISO[b.tipo] ?? 2;
-      if (pa !== pb) return pa - pb;
-      return b.fecha.localeCompare(a.fecha);
-    });
-
-    html = ordenados.map(a => {
+    html = ordenarAvisos(avisos).map((a, i) => {
       const tipo = ETIQUETAS_AVISO[a.tipo] ? a.tipo : 'novedad';
+      const c = COLORES_AVISO[tipo];
       const nuevo = a.fecha === hoy ? '<span class="etiqueta-nuevo">Nuevo</span>' : '';
-      return '<div class="aviso-publico aviso-' + tipo + '">' +
+      return '<div class="aviso-publico aviso-' + tipo + '" style="border-left-color:' + c.color + ';background:' + c.fondo + '">' +
         '<div class="aviso-cabecera">' +
+          '<span class="numero-aviso" style="background:' + c.color + '">#' + (i + 1) + '</span>' +
           '<span class="etiqueta-tipo-' + tipo + '">' + ETIQUETAS_AVISO[tipo] + '</span>' +
           nuevo +
         '</div>' +
@@ -524,10 +531,10 @@ cargarDatos()
     setInterval(tick, 1000);
     setInterval(() => cargarDatos().catch(() => {}), 30000);
   })
-  .catch(() => {
+  .catch(err => {
     const estado = document.getElementById('estado-servicio');
     estado.className = 'estado cerrado';
-    estado.textContent = 'No se pudieron cargar los datos. Revisá tu conexión.';
+    estado.textContent = 'No se pudieron cargar los datos: ' + err.message;
     ocultarCarga();
   });
 
