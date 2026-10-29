@@ -1,9 +1,12 @@
-const CACHE = 'tren-v5';
+const CACHE = 'tren-v6';
 const ARCHIVOS = ['./', './index.html', './estilos.css', './app.js', './logo.png', './manifest.json'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARCHIVOS)));
-  self.skipWaiting();
+  e.waitUntil(
+    caches.open(CACHE)
+      .then(c => c.addAll(ARCHIVOS))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', e => {
@@ -18,7 +21,7 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
 
-  // Datos, mapas y librerías externas: siempre desde la red, sin caché
+  // Datos, mapas y librerías externas: siempre desde la red
   if (url.pathname.endsWith('datos.json') ||
       url.hostname.includes('tile.openstreetmap') ||
       url.hostname.includes('google.com') ||
@@ -27,12 +30,14 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Archivos de la app: primero red, si no hay conexión, caché
+  // Red primero; si no hay conexión, caché
   e.respondWith(
     fetch(new Request(e.request, { cache: 'no-cache' }))
       .then(r => {
-        const copia = r.clone();
-        caches.open(CACHE).then(c => c.put(e.request, copia));
+        if (r.ok) {
+          const copia = r.clone();
+          caches.open(CACHE).then(c => c.put(e.request, copia));
+        }
         return r;
       })
       .catch(() => caches.match(e.request))
