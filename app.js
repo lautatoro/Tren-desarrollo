@@ -8,6 +8,10 @@ const CLAVE_HISTORIAL = 'tren-historial-avisos';
 const CLAVE_VISTOS = 'tren-avisos-vistos';
 const CLAVE_ESTADO_DETENIDO = 'tren-estado-detenido';
 const CLAVE_SALIDAS_AVISADAS = 'tren-salidas-avisadas';
+const CLAVE_ULTIMOS_DATOS = 'tren-ultimos-datos';
+const UMBRAL_SIN_CONEXION = 2 * 60 * 1000;
+
+let ultimaActualizacion = null;
 
 const ETIQUETAS_AVISO = { novedad: 'Novedad', demora: 'Demora', corte: 'Corte' };
 const PRIORIDAD_AVISO = { corte: 0, demora: 1, novedad: 2 };
@@ -40,9 +44,13 @@ function escapar(s) {
 
 function mostrar(id, boton) {
   document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('activo'));
+  document.querySelectorAll('nav button').forEach(b => {
+    b.classList.remove('activo');
+    b.setAttribute('aria-selected', 'false');
+  });
   document.getElementById(id).classList.add('activa');
   boton.classList.add('activo');
+  boton.setAttribute('aria-selected', 'true');
   if (id === 'mapa' && mapa) setTimeout(() => mapa.invalidateSize(), 100);
 }
 
@@ -96,6 +104,14 @@ function formatearMinutos(min) {
 
 function proximaHoraDecimal(d) {
   return d.getHours() + d.getMinutes() / 60;
+}
+
+function formatearHace(ms) {
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return 'hace ' + s + ' s';
+  const m = Math.floor(s / 60);
+  if (m < 60) return 'hace ' + m + ' min';
+  return 'hace ' + Math.floor(m / 60) + ' h';
 }
 
 function calcularCiclo(datos) {
@@ -182,7 +198,6 @@ function revisarNovedades(datos) {
   const vigentes = ordenarAvisos(avisos.filter(esVigente));
 
   if (vistos === null) {
-    // Primera vez: guardamos la base sin notificar
     guardarVistos(idsActuales);
   } else {
     const nuevos = vigentes.filter(a => a.id && !vistos.includes(a.id));
@@ -439,9 +454,25 @@ function actualizarTren(datos) {
   }
 }
 
+// ---------- INDICADOR DE CONEXIÓN ----------
+
+function actualizarIndicadorConexion() {
+  const el = document.getElementById('estado-conexion');
+  if (!el || !ultimaActualizacion) return;
+  const hace = Date.now() - ultimaActualizacion;
+  const horaTxt = formatearHora(proximaHoraDecimal(new Date(ultimaActualizacion)));
+  if (hace > UMBRAL_SIN_CONEXION) {
+    el.className = 'estado-conexion sin-conexion';
+    el.textContent = 'Sin conexión: mostrando datos de ' + horaTxt + ' hs (' + formatearHace(hace) + ')';
+  } else {
+    el.className = 'estado-conexion';
+    el.textContent = 'Actualizado ' + formatearHace(hace) + ' · ' + horaTxt + ' hs';
+  }
+}
+
 // ---------- ACTUALIZACIÓN ----------
 
-// Cada segundo: estado, cuenta regresiva y posición del tren
+// Cada segundo: estado, cuenta regresiva, posición del tren e indicador
 function actualizarRapido(datos) {
   const ahora = new Date();
   const { salidas, bloque } = salidasDel(ahora, datos);
@@ -476,6 +507,7 @@ function actualizarRapido(datos) {
     ? 'Faltan ' + formatearCuenta(proxima - ahora) : '';
 
   actualizarTren(datos);
+  actualizarIndicadorConexion();
 }
 
 // Al llegar datos y cada 30 segundos: listas completas
@@ -516,9 +548,27 @@ function ocultarCarga() {
   setTimeout(() => pantalla.remove(), 600);
 }
 
+// Trae datos.json; si no hay red, usa la última copia guardada en el celular
 function cargarDatos() {
   return fetch(URL_DATOS + '?v=' + Date.now(), { cache: 'no-store' })
-    .then(r => r.json())
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(datos => {
+      try {
+        localStorage.setItem(CLAVE_ULTIMOS_DATOS, JSON.stringify({ ...datos, _guardadoEn: Date.now() }));
+      } catch (e) {}
+      ultimaActualizacion = Date.now();
+      return datos;
+    })
+    .catch(err => {
+      const guardado = localStorage.getItem(CLAVE_ULTIMOS_DATOS);
+      if (!guardado) throw err;
+      const copia = JSON.parse(guardado);
+      ultimaActualizacion = copia._guardadoEn || Date.now();
+      return copia;
+    })
     .then(datos => {
       const primeraVez = !datosCargados;
       datosCargados = datos;
@@ -540,7 +590,7 @@ cargarDatos()
   .catch(err => {
     const estado = document.getElementById('estado-servicio');
     estado.className = 'estado cerrado';
-    estado.textContent = 'No se pudieron cargar los datos: ' + err.message;
+    estado.innerHTML = '<span class="punto"></span><strong>No se pudieron cargar los datos</strong><br><small>' + escapar(err.message) + '</small>';
     ocultarCarga();
   });
 
