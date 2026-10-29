@@ -204,14 +204,20 @@ footer { text-align: center; font-size: .78rem; opacity: .6; padding: 16px; }
 
 /* ----- Indicador de conexión ----- */
 .estado-conexion {
-  margin: 12px 14px 4px;
-  font-size: .85rem;
-  text-align: center;
+  display: inline-block;
+  margin: 14px auto 16px;
+  padding: 6px 14px;
+  font-size: .78rem;
   color: var(--texto);
-  opacity: 1;
+  background: var(--superficie);
+  border-radius: 999px;
+  box-shadow: var(--sombra);
   position: relative;
   z-index: 6;
+  opacity: .9;
+  text-align: center;
 }
+.estado-conexion { display: block; width: fit-content; margin-left: auto; margin-right: auto; }
 .estado-conexion.sin-conexion { color: #D7141A; opacity: 1; font-weight: 700; }
 
 @media (prefers-reduced-motion: reduce) {
