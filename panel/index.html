@@ -14,7 +14,7 @@
   <style>
     :root {
       --azul: #0057B8; --azul-oscuro: #003B7A; --rojo: #D7141A;
-      --verde: #1DB954; --naranja: #F5A623; --gris: #9AA5B1;
+      --verde: #1DB954; --naranja: #F5A623;
       --fondo: #EEF3FA; --texto: #1C2B3A; --blanco: #FFFFFF;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -64,21 +64,22 @@
     .estado-caja.ok { background: #E8F8EE; color: #137A3A; }
     .estado-caja.detenido { background: #FDECEC; color: #B0101A; }
     .punto { width: 12px; height: 12px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-    .aviso {
+    .aviso-item {
       border-left: 5px solid var(--azul); border-radius: 14px; padding: 12px 14px;
       background: #F7FAFF; margin-top: 10px;
     }
-    .aviso.demora { border-left-color: var(--naranja); background: #FFF9EE; }
-    .aviso.corte { border-left-color: var(--rojo); background: #FFF3F3; }
-    .aviso-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .aviso-item.demora { border-left-color: var(--naranja); background: #FFF9EE; }
+    .aviso-item.corte { border-left-color: var(--rojo); background: #FFF3F3; }
+    .aviso-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
     .etiqueta-tipo {
       font-size: .72rem; font-weight: 700; text-transform: uppercase;
       padding: 3px 9px; border-radius: 999px; color: #fff; background: var(--azul);
     }
-    .aviso.demora .etiqueta-tipo { background: var(--naranja); }
-    .aviso.corte .etiqueta-tipo { background: var(--rojo); }
-    .aviso p { margin-top: 8px; line-height: 1.5; font-size: .95rem; }
-    .aviso small { display: block; margin-top: 6px; opacity: .65; font-size: .78rem; }
+    .aviso-item.demora .etiqueta-tipo { background: var(--naranja); }
+    .aviso-item.corte .etiqueta-tipo { background: var(--rojo); }
+    .aviso-item p { margin-top: 8px; line-height: 1.5; font-size: .95rem; }
+    .aviso-item small { display: block; margin-top: 6px; opacity: .65; font-size: .78rem; }
+    .acciones-aviso { display: flex; gap: 6px; }
     .contador { font-size: .8rem; opacity: .7; text-align: right; margin-top: 4px; }
     .vacio { text-align: center; opacity: .6; padding: 14px 0; }
     .oculto { display: none !important; }
@@ -126,7 +127,7 @@
     </div>
 
     <div class="tarjeta">
-      <h2>Publicar aviso</h2>
+      <h2 id="titulo-formulario">Publicar aviso</h2>
 
       <div class="fila" style="margin-top:0;">
         <button class="btn secundario pequeno" onclick="plantilla('Demora de 15 minutos por obras', 'demora')">Demora 15 min</button>
@@ -155,7 +156,8 @@
       </label>
       <div class="contador"><span id="contador">0</span>/300</div>
       <div class="fila">
-        <button id="btn-publicar" class="btn" onclick="publicar()">Publicar aviso</button>
+        <button id="btn-publicar" class="btn" onclick="guardarAviso()">Publicar aviso</button>
+        <button id="btn-cancelar" class="btn secundario oculto" onclick="cancelarEdicion()">Cancelar edición</button>
       </div>
       <p id="msg-publicar" class="msg" role="status"></p>
     </div>
@@ -178,6 +180,8 @@
 <script>
   const URL_API = 'https://tren-panel.lautisuaa.workers.dev';
   let clave = sessionStorage.getItem('clave-panel') || '';
+  let idEditando = null;
+  let avisosCache = [];
 
   const escapar = s => String(s ?? '').replace(/[&<>"']/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -253,26 +257,100 @@
   }
 
   function plantilla(texto, tipo) {
+    if (idEditando) cancelarEdicion();
     document.getElementById('texto').value = texto;
     document.getElementById('tipo').value = tipo;
     document.getElementById('contador').textContent = texto.length;
   }
+
+  // ---------- Editar ----------
+
+  function iniciarEdicion(id) {
+    const a = avisosCache.find(x => x.id === id);
+    if (!a) return;
+    idEditando = id;
+    document.getElementById('texto').value = a.texto;
+    document.getElementById('tipo').value = ETIQUETAS[a.tipo] ? a.tipo : 'novedad';
+    document.getElementById('contador').textContent = a.texto.length;
+    document.getElementById('titulo-formulario').textContent = 'Editar aviso';
+    document.getElementById('btn-publicar').textContent = 'Guardar cambios';
+    document.getElementById('btn-cancelar').classList.remove('oculto');
+    document.getElementById('msg-publicar').textContent = '';
+    document.getElementById('texto').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function cancelarEdicion() {
+    idEditando = null;
+    document.getElementById('texto').value = '';
+    document.getElementById('tipo').value = 'novedad';
+    document.getElementById('contador').textContent = '0';
+    document.getElementById('titulo-formulario').textContent = 'Publicar aviso';
+    document.getElementById('btn-publicar').textContent = 'Publicar aviso';
+    document.getElementById('btn-cancelar').classList.add('oculto');
+    document.getElementById('msg-publicar').textContent = '';
+  }
+
+  // Publica un aviso nuevo o guarda la edición, según el caso
+  async function guardarAviso() {
+    const texto = document.getElementById('texto').value.trim();
+    const tipo = document.getElementById('tipo').value;
+    const horas = Number(document.getElementById('horas').value);
+    const msg = document.getElementById('msg-publicar');
+    const btn = document.getElementById('btn-publicar');
+    if (!texto) { msg.className = 'msg'; msg.textContent = 'Escribí un aviso antes de publicar.'; return; }
+
+    btn.disabled = true;
+    msg.className = 'msg';
+    msg.textContent = idEditando ? 'Guardando cambios...' : 'Publicando...';
+    try {
+      if (idEditando) {
+        await api('/avisos/editar', { method: 'POST', body: JSON.stringify({ id: idEditando, texto, tipo, horas }) });
+        msg.className = 'msg ok';
+        msg.textContent = 'Cambios guardados';
+        cancelarEdicion();
+      } else {
+        await api('/avisos', { method: 'POST', body: JSON.stringify({ texto, tipo, horas }) });
+        document.getElementById('texto').value = '';
+        document.getElementById('contador').textContent = '0';
+        msg.className = 'msg ok';
+        msg.textContent = 'Aviso publicado';
+      }
+      cargarAvisos();
+    } catch (e) {
+      msg.className = 'msg';
+      msg.textContent = e.message;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ---------- Lista ----------
 
   async function cargarAvisos() {
     const lista = document.getElementById('lista-avisos');
     document.getElementById('msg-lista').textContent = '';
     try {
       const avisos = await api('/avisos');
+      avisosCache = avisos;
       lista.innerHTML = avisos.length ? avisos.map(a => {
         const tipo = ETIQUETAS[a.tipo] ? a.tipo : 'novedad';
         const vencido = a.vence && new Date(a.vence) <= new Date();
-        return `<div class="aviso ${tipo}" style="${vencido ? 'opacity:.5' : ''}">
+        const hora = a.hora ? ' · ' + escapar(a.hora) + ' hs' : ' · sin hora';
+        const editado = a.editado ? ' · editado ' + escapar(a.editado) + ' hs' : '';
+        const autor = a.autor ? escapar(a.autor) : 'desconocido';
+        const vence = a.vence
+          ? ' · vence ' + escapar(new Date(a.vence).toLocaleString('es-AR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }))
+          : '';
+        return `<div class="aviso-item ${tipo}" style="${vencido ? 'opacity:.5' : ''}">
           <div class="aviso-top">
             <span class="etiqueta-tipo">${ETIQUETAS[tipo]}${vencido ? ' · vencido' : ''}</span>
-            <button class="btn peligro pequeno" onclick="borrarAviso('${escapar(a.id)}')">Borrar</button>
+            <div class="acciones-aviso">
+              <button class="btn secundario pequeno" onclick="iniciarEdicion('${escapar(a.id)}')">Editar</button>
+              <button class="btn peligro pequeno" onclick="borrarAviso('${escapar(a.id)}')">Borrar</button>
+            </div>
           </div>
           <p>${escapar(a.texto)}</p>
-          <small>${escapar(a.fecha)}${a.autor ? ' · ' + escapar(a.autor) : ''}${a.vence ? ' · vence ' + escapar(new Date(a.vence).toLocaleString('es-AR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })) : ''}</small>
+          <small>${escapar(a.fecha)}${hora}${editado} · por ${autor}${vence}</small>
         </div>`;
       }).join('') : '<p class="vacio">No hay avisos publicados.</p>';
     } catch (e) {
@@ -285,37 +363,13 @@
     if (!confirm('¿Borrar este aviso? No se puede deshacer.')) return;
     try {
       await api('/avisos/borrar', { method: 'POST', body: JSON.stringify({ id }) });
+      if (idEditando === id) cancelarEdicion();
       document.getElementById('msg-lista').className = 'msg ok';
       document.getElementById('msg-lista').textContent = 'Aviso borrado';
       cargarAvisos();
     } catch (e) {
       document.getElementById('msg-lista').className = 'msg';
       document.getElementById('msg-lista').textContent = e.message;
-    }
-  }
-
-  async function publicar() {
-    const texto = document.getElementById('texto').value.trim();
-    const tipo = document.getElementById('tipo').value;
-    const horas = Number(document.getElementById('horas').value);
-    const msg = document.getElementById('msg-publicar');
-    const btn = document.getElementById('btn-publicar');
-    if (!texto) { msg.className = 'msg'; msg.textContent = 'Escribí un aviso antes de publicar.'; return; }
-
-    btn.disabled = true;
-    msg.className = 'msg';
-    msg.textContent = 'Publicando...';
-    try {
-      await api('/avisos', { method: 'POST', body: JSON.stringify({ texto, tipo, horas }) });
-      document.getElementById('texto').value = '';
-      document.getElementById('contador').textContent = '0';
-      msg.className = 'msg ok';
-      msg.textContent = 'Aviso publicado';
-      cargarAvisos();
-    } catch (e) {
-      msg.textContent = e.message;
-    } finally {
-      btn.disabled = false;
     }
   }
 
